@@ -37,7 +37,7 @@ export function useProducts(filters: ShopFilters) {
       let query = supabase
         .from("products")
         .select(
-          "id,sku,slug,name,short_description,description,brand,is_featured,product_categories(categories(slug)),product_variants(id,product_id,sku,size_label,regular_price,sale_price),product_images(product_id,position,storage_path,alt_text),product_attributes(key,value)",
+          "id,sku,slug,name,short_description,description,brand,is_featured,product_categories(categories(id,slug,parent_id)),product_variants(id,product_id,sku,size_label,regular_price,sale_price),product_images(product_id,position,storage_path,alt_text),product_attributes(key,value)",
         )
         .eq("status", "active");
 
@@ -60,9 +60,23 @@ export function useProducts(filters: ShopFilters) {
           variants: (row.product_variants ?? []) as ProductVariant[],
           images: ((row.product_images ?? []) as ProductImage[]).sort((a, b) => a.position - b.position),
           attributes,
-          categorySlugs: (row.product_categories ?? [])
-            .map((pc: any) => pc.categories?.slug)
-            .filter(Boolean),
+          categorySlugs: (() => {
+            const categoryRows = (row.product_categories ?? [])
+              .map((pc: any) => pc.categories)
+              .filter(Boolean);
+            const byId = new Map(categoryRows.map((c: any) => [c.id, c]));
+            const slugs = new Set<string>();
+            for (const category of categoryRows) {
+              let current = category;
+              const seen = new Set<string>();
+              while (current && !seen.has(current.id)) {
+                seen.add(current.id);
+                if (current.slug) slugs.add(current.slug);
+                current = current.parent_id ? byId.get(current.parent_id) : undefined;
+              }
+            }
+            return [...slugs];
+          })(),
         };
       });
 
