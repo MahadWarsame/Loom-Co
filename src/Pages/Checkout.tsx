@@ -37,7 +37,7 @@ const carriers: Array<{ id: Carrier; name: string; price: number; note: string }
 
 export function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [customerType, setCustomerType] = useState<CustomerType>("private");
   const [selectedCarrier, setSelectedCarrier] = useState<Carrier | null>(null);
   const [priorityPacking, setPriorityPacking] = useState(false);
@@ -284,19 +284,6 @@ export function CheckoutPage() {
                     })}
                   </div>
 
-                  <div className="mt-5 rounded-lg border border-gray-200 p-4">
-                    <p className="mb-3 text-sm font-bold text-gray-900">Leveransadress</p>
-                    <div className="space-y-2">
-                      <input required value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="För- och efternamn" autoComplete="name" className="w-full rounded-lg border border-gray-200 p-3 text-sm outline-none focus:border-[#14b8a6]" />
-                      <input required value={form.line1} onChange={(e) => update("line1", e.target.value)} placeholder="Gatuadress och nummer" autoComplete="street-address" className="w-full rounded-lg border border-gray-200 p-3 text-sm outline-none focus:border-[#14b8a6]" />
-                      <div className="grid grid-cols-2 gap-2">
-                        <input required value={form.postalCode} onChange={(e) => update("postalCode", e.target.value)} placeholder="123 45" autoComplete="postal-code" className="w-full rounded-lg border border-gray-200 p-3 text-sm outline-none focus:border-[#14b8a6]" />
-                        <input required value={form.city} onChange={(e) => update("city", e.target.value)} placeholder="Ort" autoComplete="address-level2" className="w-full rounded-lg border border-gray-200 p-3 text-sm outline-none focus:border-[#14b8a6]" />
-                      </div>
-                      <input value={form.line2} onChange={(e) => update("line2", e.target.value)} placeholder="Lägenhet, våning etc. (valfritt)" autoComplete="address-line2" className="w-full rounded-lg border border-gray-200 p-3 text-sm outline-none focus:border-[#14b8a6]" />
-                    </div>
-                  </div>
-
                   {error && <div role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
                   <button type="button" onClick={openPayment} disabled={!selectedCarrier} className="mt-4 w-full rounded-lg bg-gray-900 py-3.5 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400">
@@ -336,8 +323,8 @@ export function CheckoutPage() {
                     <span className="rounded border border-gray-200 bg-white px-2 py-1 text-blue-700">VISA</span>
                   </div>
 
-                  <button type="submit" disabled={submitting || !form.email || !form.phone} className="mt-5 w-full rounded-lg bg-[#14b8a6] py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0d9488] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400">
-                    {submitting ? "Förbereder betalning…" : "Fortsätt till betalning"}
+                  <button type="button" onClick={() => setStep(4)} disabled={!form.email || !form.phone} className="mt-5 w-full rounded-lg bg-[#14b8a6] py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0d9488] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400">
+                    Fortsätt till betalning
                   </button>
 
                   <Link to="/info/contact" className="mt-4 block text-center text-xs text-gray-500 underline hover:text-gray-700">Dataskyddspolicy</Link>
