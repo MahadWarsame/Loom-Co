@@ -41,10 +41,6 @@ export function useProducts(filters: ShopFilters) {
         )
         .eq("status", "active");
 
-      if (filters.q) {
-        query = query.textSearch("search", filters.q, { type: "websearch" });
-      }
-
       const { data, error } = await query.limit(1000);
       if (error) throw error;
 
@@ -70,7 +66,15 @@ export function useProducts(filters: ShopFilters) {
         };
       });
 
+      const search = filters.q?.trim().toLowerCase();
       return products.filter((p) => {
+        if (search) {
+          const haystack = [p.name, p.sku, p.brand, p.short_description, p.description, ...Object.values(p.attributes), ...p.categorySlugs]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+          if (!haystack.includes(search)) return false;
+        }
         if (filters.categorySlug && !p.categorySlugs.includes(filters.categorySlug)) return false;
         if (filters.color && p.attributes.Color !== filters.color) return false;
         if (filters.material && p.attributes.Material !== filters.material) return false;
