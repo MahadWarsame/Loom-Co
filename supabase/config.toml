@@ -1,0 +1,7 @@
+project_id = "yurzvyaphzpqwtqyljuq"
+
+[functions.create-payment-session]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
