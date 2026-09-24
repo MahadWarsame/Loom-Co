@@ -138,17 +138,20 @@ export function CheckoutPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-10">
-      <div className="mb-8">
-        <Link to="/cart" className="text-xs text-mut hover:text-fg">← Back to cart</Link>
-        <p className="mt-6 text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">Checkout</p>
-        <h1 className="mt-2 text-5xl">Delivery details</h1>
+    <div className="min-h-[calc(100vh-72px)] bg-[#faf9f6]">
+      <div className="border-b border-line bg-bg">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
+          <Link to="/" className="font-display text-[25px] tracking-[-0.03em]">Loom <span className="text-gold">&amp;</span> Co</Link>
+          <div className="text-[11px] text-mut"><span className="font-medium text-fg">Checkout</span> <span className="mx-2">•</span> Secure payment</div>
+        </div>
       </div>
-
-      <div className="grid gap-10 lg:grid-cols-[1fr_360px]">
+      <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:px-10 lg:py-12">
+        <Link to="/cart" className="text-xs text-mut hover:text-fg">← Back to cart</Link>
+        <div className="mt-7 grid gap-10 lg:grid-cols-[minmax(0,1fr)_390px]">
         <form onSubmit={submitOrder} className="space-y-8">
-          <section>
-            <h2 className="font-display text-2xl">Contact</h2>
+          <section className="border border-line bg-bg p-5 sm:p-7">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">01 · Contact</p>
+            <h2 className="mt-1 font-display text-2xl">Your information</h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <label className="text-xs font-medium sm:col-span-2">Full name<input required value={form.name} onChange={(e) => update("name", e.target.value)} className="mt-2 h-12 w-full border border-line bg-bg px-3 text-sm outline-none focus:border-fg" /></label>
               <label className="text-xs font-medium">Email<input required type="email" value={form.email} onChange={(e) => update("email", e.target.value)} className="mt-2 h-12 w-full border border-line bg-bg px-3 text-sm outline-none focus:border-fg" /></label>
@@ -156,8 +159,9 @@ export function CheckoutPage() {
             </div>
           </section>
 
-          <section className="border-t border-line pt-8">
-            <h2 className="font-display text-2xl">Shipping address</h2>
+          <section className="border border-line bg-bg p-5 sm:p-7">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">02 · Delivery</p>
+            <h2 className="mt-1 font-display text-2xl">Shipping address</h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <label className="text-xs font-medium sm:col-span-2">Address<input required value={form.line1} onChange={(e) => update("line1", e.target.value)} className="mt-2 h-12 w-full border border-line bg-bg px-3 text-sm outline-none focus:border-fg" /></label>
               <label className="text-xs font-medium sm:col-span-2">Apartment, floor, etc. <span className="font-normal text-mut">(optional)</span><input value={form.line2} onChange={(e) => update("line2", e.target.value)} className="mt-2 h-12 w-full border border-line bg-bg px-3 text-sm outline-none focus:border-fg" /></label>
@@ -168,14 +172,17 @@ export function CheckoutPage() {
 
           {error && <div role="alert" className="border border-sale/30 bg-sale/5 p-4 text-sm text-sale">{error}</div>}
 
-          <button type="submit" disabled={submitting} className="w-full bg-fg py-4 text-sm font-semibold text-bg transition hover:bg-[#3a3731] disabled:cursor-wait disabled:opacity-50">
-            {submitting ? "Preparing secure payment…" : "Continue to payment"}
-          </button>
-          <p className="text-center text-xs leading-5 text-mut">You will be redirected to Stripe's secure payment page. Payment is confirmed by webhook before the order is fulfilled.</p>
+          <div className="border border-line bg-bg p-5 sm:p-7">
+            <div className="flex items-center gap-3 text-xs text-mut"><span className="grid h-7 w-7 place-items-center rounded-full bg-soft text-fg">✓</span><span>Secure payment powered by Stripe</span></div>
+            <button type="submit" disabled={submitting} className="mt-5 w-full bg-fg py-4 text-sm font-semibold text-bg transition hover:bg-[#3a3731] disabled:cursor-wait disabled:opacity-50">
+              {submitting ? "Preparing secure payment…" : "Continue to secure payment"}
+            </button>
+            <p className="mt-3 text-center text-[11px] leading-5 text-mut">Your payment is processed securely. You will be redirected to Stripe after your order is reserved.</p>
+          </div>
         </form>
 
-        <aside className="h-fit border border-line bg-soft/40 p-6 lg:sticky lg:top-28">
-          <h2 className="font-display text-2xl">Order summary</h2>
+        <aside className="order-first h-fit border border-line bg-bg p-5 shadow-sm lg:sticky lg:top-28 lg:order-none sm:p-7">
+          <div className="flex items-baseline justify-between"><div><p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">Your selection</p><h2 className="mt-1 font-display text-2xl">Order summary</h2></div><span className="text-xs text-mut">{items.length} {items.length === 1 ? "item" : "items"}</span></div>
           <div className="mt-5 divide-y divide-line border-y border-line">
             {items.map((item) => (
               <div key={item.variantId} className="flex justify-between gap-4 py-4 text-sm">
@@ -184,7 +191,14 @@ export function CheckoutPage() {
               </div>
             ))}
           </div>
-          <div className="mt-5 flex justify-between font-semibold"><span>Total</span><span>{sek(subtotal)}</span></div>
+          <div className="mt-5 space-y-3 border-t border-line pt-5 text-sm">
+            <div className="flex justify-between"><span className="text-mut">Subtotal</span><span>{sek(subtotal)}</span></div>
+            <div className="flex justify-between"><span className="text-mut">Delivery</span><span className="text-xs">Calculated at checkout</span></div>
+          </div>
+          <div className="mt-5 flex justify-between border-t border-line pt-5 text-lg font-semibold"><span>Total</span><span>{sek(subtotal)}</span></div>
+          <div className="mt-6 border-t border-line pt-5 text-[11px] leading-5 text-mut">
+            <p>✓ Secure checkout</p><p className="mt-1">✓ Payment handled by Stripe</p>
+          </div>
         </aside>
       </div>
     </div>
