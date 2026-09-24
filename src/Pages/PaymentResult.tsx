@@ -22,13 +22,13 @@ export function PaymentResultPage({ cancelled = false }: { cancelled?: boolean }
 
   return (
     <div className="mx-auto max-w-2xl px-5 py-20 text-center sm:px-8">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">Payment received</p>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">Payment submitted</p>
       <h1 className="mt-3 text-5xl">Thank you</h1>
       <p className="mt-5 text-sm leading-7 text-mut">
-        Your payment has been submitted successfully. {order && <>Your order number is <strong className="text-fg">{order}</strong>.</>}
+        We have sent you back from the secure payment page. {order && <>Your order number is <strong className="text-fg">{order}</strong>.</>}
       </p>
       <p className="mt-3 text-sm leading-7 text-mut">
-        We are confirming the payment and will use your email address for order updates.
+        Payment confirmation is handled securely in the background. We will use your email address for order updates.
       </p>
       <Link to="/shop" className="mt-8 inline-flex bg-fg px-7 py-4 text-sm font-semibold text-bg">Continue shopping</Link>
     </div>
