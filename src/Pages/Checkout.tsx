@@ -148,7 +148,7 @@ export function CheckoutPage() {
       <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:px-10 lg:py-12">
         <Link to="/cart" className="text-xs text-mut hover:text-fg">← Back to cart</Link>
         <div className="mt-7 grid gap-10 lg:grid-cols-[minmax(0,1fr)_390px]">
-        <form onSubmit={submitOrder} className="space-y-8">
+          <form onSubmit={submitOrder} className="space-y-8">
           <section className="border border-line bg-bg p-5 sm:p-7">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">01 · Contact</p>
             <h2 className="mt-1 font-display text-2xl">Your information</h2>
@@ -199,7 +199,8 @@ export function CheckoutPage() {
           <div className="mt-6 border-t border-line pt-5 text-[11px] leading-5 text-mut">
             <p>✓ Secure checkout</p><p className="mt-1">✓ Payment handled by Stripe</p>
           </div>
-        </aside>
+          </aside>
+        </div>
       </div>
     </div>
   );
