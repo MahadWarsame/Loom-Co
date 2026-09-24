@@ -20,9 +20,21 @@ export function ProductPage() {
 
   const images = product.images;
   const activeImage = images[imageIndex] ?? images[0];
-  const variant = product.variants[variantIndex];
+
+  // Only show variants that are currently available for purchase.
+  const availableVariants = availability
+    ? product.variants.filter((v) => availability.some((a) => a.variant_id === v.id && a.in_stock))
+    : product.variants;
+
+  const variant = availableVariants[variantIndex] ?? availableVariants[0];
   const avail = availability?.find((a) => a.variant_id === variant?.id);
-  const stockLabel = !avail || !avail.in_stock ? "Out of stock" : avail.low_stock ? "Low stock" : "In stock";
+  const stockLabel = !variant
+    ? "Out of stock"
+    : !avail || !avail.in_stock
+      ? "Out of stock"
+      : avail.low_stock
+        ? "Low stock"
+        : "In stock";
 
   const showPreviousImage = () => {
     if (images.length < 2) return;
@@ -95,7 +107,29 @@ export function ProductPage() {
         {variant && <div className="mt-5 text-xl">{variant.sale_price ? <><b className="text-sale">{sek(variant.sale_price)}</b><s className="ml-2 text-sm text-mut">{sek(variant.regular_price)}</s></> : <b>{sek(variant.regular_price)}</b>}</div>}
         <div className={`mt-2 text-xs font-semibold uppercase tracking-[0.12em] ${stockLabel === "In stock" ? "text-[#55735a]" : stockLabel === "Low stock" ? "text-sale" : "text-mut"}`}>{stockLabel}</div>
         <p className="mt-7 border-y border-line py-6 text-sm leading-7 text-mut">{product.short_description ?? product.description}</p>
-        {product.variants.length > 1 && <div className="mt-7"><div className="mb-3 text-xs font-semibold uppercase tracking-[0.16em]">Size</div><div className="flex flex-wrap gap-2">{product.variants.map((v: ProductVariant, i: number) => <button key={v.id} onClick={() => setVariantIndex(i)} className={`border px-4 py-2.5 text-sm transition ${i === variantIndex ? "border-fg bg-fg text-bg" : "border-line hover:border-fg"}`}>{v.size_label} cm</button>)}</div></div>}
+
+        {product.variants.length > 1 && (
+          <div className="mt-7">
+            <div className="mb-3 text-xs font-semibold uppercase tracking-[0.16em]">Available sizes</div>
+            {availableVariants.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {availableVariants.map((v: ProductVariant, i: number) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => setVariantIndex(i)}
+                    className={`border px-4 py-2.5 text-sm transition ${i === variantIndex ? "border-fg bg-fg text-bg" : "border-line hover:border-fg"}`}
+                  >
+                    {v.size_label} cm
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-mut">This rug is currently out of stock in all sizes.</p>
+            )}
+          </div>
+        )}
+
         <button disabled={!avail?.in_stock} className="mt-8 w-full bg-fg py-4 text-sm font-semibold text-bg transition hover:bg-[#3a3731] disabled:cursor-not-allowed disabled:opacity-40">Add to cart</button>
         <div className="mt-4 grid grid-cols-2 gap-2">{["Carefully selected", "Secure checkout", "Easy support", "Quality checked"].map((item) => <div key={item} className="border border-line px-3 py-3 text-center text-[11px] text-mut">{item}</div>)}</div>
         <dl className="mt-8 divide-y divide-line border-t border-line text-sm">{Object.entries(product.attributes).map(([k, v]) => <div key={k} className="flex justify-between gap-6 py-3"><dt className="text-mut">{k}</dt><dd className="text-right">{String(v)}</dd></div>)}</dl>
