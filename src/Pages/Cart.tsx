@@ -68,7 +68,7 @@ export function CartPage() {
           </div>
           <div className="flex justify-between pt-5 text-base font-semibold"><span>Total</span><span>{sek(subtotal)}</span></div>
           <Link to="/checkout" className="mt-6 flex w-full justify-center bg-fg py-4 text-sm font-semibold text-bg transition hover:bg-[#3a3731]">Continue to checkout</Link>
-          <p className="mt-3 text-center text-[11px] leading-5 text-mut">Your cart is saved on this device. Checkout and secure payment will be connected next.</p>
+          <p className="mt-3 text-center text-[11px] leading-5 text-mut">Your cart is saved on this device. Secure payment is handled at checkout.</p>
         </aside>
       </div>
     </div>
