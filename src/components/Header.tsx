@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCategories } from "../lib/queries";
 
@@ -9,7 +9,7 @@ export function Header() {
   const [query, setQuery] = useState("");
   const topLevel = (categories ?? []).filter((c) => c.parent_id === null).slice(0, 5);
 
-  function submitSearch(e: React.FormEvent) {
+  function submitSearch(e: FormEvent) {
     e.preventDefault();
     const value = query.trim();
     navigate(value ? `/shop?q=${encodeURIComponent(value)}` : "/shop");
