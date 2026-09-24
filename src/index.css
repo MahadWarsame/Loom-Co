@@ -1,18 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 @layer base {
-  body {
-    @apply bg-bg text-fg font-body antialiased;
-  }
-  h1,
-  h2,
-  h3 {
-    @apply font-display font-normal tracking-tight;
-  }
-  :focus-visible {
-    outline: 3px solid theme("colors.gold");
-    outline-offset: 2px;
-  }
+  html { scroll-behavior: smooth; }
+  body { @apply bg-bg text-fg font-body antialiased; font-feature-settings: "kern","liga","clig","calt"; }
+  h1,h2,h3 { @apply font-display font-normal tracking-tight; }
+  button,a { -webkit-tap-highlight-color: transparent; }
+  button { font: inherit; }
+  :focus-visible { outline: 2px solid theme("colors.gold"); outline-offset: 3px; }
+  ::selection { background: #d9c39c; color: #26241f; }
 }
+@layer utilities { .text-balance { text-wrap: balance; } }
