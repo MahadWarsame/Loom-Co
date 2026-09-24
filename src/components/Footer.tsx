@@ -1,9 +1,3 @@
 export function Footer() {
-  return (
-    <footer className="mt-16 border-t border-line bg-soft py-10">
-      <div className="mx-auto max-w-6xl px-4 text-sm text-mut">
-        <p>&copy; {new Date().getFullYear()} Loom &amp; Co.</p>
-      </div>
-    </footer>
-  );
+  return <footer className="border-t border-line bg-[#f0ece3]"><div className="mx-auto max-w-7xl px-5 py-14 sm:px-8 lg:px-10"><div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]"><div><div className="font-display text-2xl">Loom <span className="text-gold">&amp;</span> Co</div><p className="mt-3 max-w-xs text-sm leading-6 text-mut">Thoughtfully sourced rugs for spaces that feel like home.</p></div><div><p className="text-xs font-semibold uppercase tracking-[0.18em]">Shop</p><div className="mt-4 text-sm text-mut"><a href="/shop">All rugs</a></div></div><div><p className="text-xs font-semibold uppercase tracking-[0.18em]">Help</p><div className="mt-4 space-y-2 text-sm text-mut"><p>Delivery</p><p>Returns</p><p>Contact</p></div></div><div><p className="text-xs font-semibold uppercase tracking-[0.18em]">Loom &amp; Co</p><div className="mt-4 space-y-2 text-sm text-mut"><p>Our story</p><p>Care guide</p></div></div></div><div className="mt-12 border-t border-line pt-5 text-xs text-mut">© {new Date().getFullYear()} Loom &amp; Co. All rights reserved.</div></div></footer>;
 }
