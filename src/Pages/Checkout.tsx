@@ -53,7 +53,27 @@ export function CheckoutPage() {
     });
 
     if (paymentError || !data?.url) {
-      setError(paymentError?.message || data?.error || "We couldn't start secure payment. Please try again.");
+      let serverMessage = data?.error as string | undefined;
+      let serverDetails = data?.details as string | undefined;
+
+      if (paymentError && "context" in paymentError) {
+        try {
+          const response = (paymentError as { context?: Response }).context;
+          if (response) {
+            const body = await response.clone().json().catch(() => null);
+            serverMessage = body?.error || serverMessage;
+            serverDetails = body?.details || serverDetails;
+          }
+        } catch {
+          // Keep the generic error if the response body cannot be read.
+        }
+      }
+
+      setError(
+        [serverMessage, serverDetails].filter(Boolean).join(" ") ||
+        paymentError?.message ||
+        "We couldn't start secure payment. Please try again.",
+      );
       setSubmitting(false);
       return;
     }
