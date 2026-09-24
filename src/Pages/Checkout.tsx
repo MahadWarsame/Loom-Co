@@ -238,8 +238,8 @@ export function CheckoutPage() {
             </div>
           </section>
 
-          <div className="border-t border-gray-200">
-            <button type="button" onClick={() => step >= 2 && setStep(step === 2 ? 1 : 2)} disabled={step < 2} className="flex w-full items-center justify-between px-4 py-4 text-left sm:px-6 disabled:cursor-default">
+          {step >= 2 && <div className="border-t border-gray-200">
+            <button type="button" onClick={() => setStep(step === 2 ? 1 : 2)} className="flex w-full items-center justify-between px-4 py-4 text-left sm:px-6">
               <span className={step >= 2 ? "font-bold text-gray-900" : "font-medium text-gray-400"}>Steg 2 · Välj fraktsätt</span>
               <span className="text-lg text-gray-400">{step >= 2 ? "⌃" : "🔒"}</span>
             </button>
@@ -305,10 +305,10 @@ export function CheckoutPage() {
                 </section>
               </div>
             </div>
-          </div>
+          </div>}
 
-          <div className="border-t border-gray-200">
-            <button type="button" onClick={() => step === 3 && setStep(2)} disabled={step < 3} className="flex w-full items-center justify-between px-4 py-4 text-left sm:px-6 disabled:cursor-default">
+          {step >= 3 && <div className="border-t border-gray-200">
+            <button type="button" onClick={() => setStep(2)} className="flex w-full items-center justify-between px-4 py-4 text-left sm:px-6">
               <span className={step >= 3 ? "font-bold text-gray-900" : "font-medium text-gray-400"}>Steg 3 · Kontaktuppgifter</span>
               <span className="text-lg text-gray-400">{step >= 3 ? "⌃" : "🔒"}</span>
             </button>
@@ -344,7 +344,7 @@ export function CheckoutPage() {
                 </section>
               </div>
             </div>
-          </div>
+          </div>}
         </form>
       </main>
     </div>
