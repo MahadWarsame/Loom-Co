@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "./supabase";
-import type { Availability, Category, ProductImage, ProductVariant, ProductWithDetails } from "./types";
+import type { Availability, Category, ProductImage, ProductVariant, ProductWithDetails } from "../types";
 
 export function useCategories() {
   return useQuery({
