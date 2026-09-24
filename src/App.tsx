@@ -5,6 +5,7 @@ import { Home } from "./Pages/Home";
 import { Shop } from "./Pages/Shop";
 import { ProductPage } from "./Pages/Product";
 import { NotFound } from "./Pages/NotFound";
+import { InfoPage } from "./Pages/Info";
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/shop" element={<Shop />} />
           <Route path="/product/:slug" element={<ProductPage />} />
+          <Route path="/info/:page" element={<InfoPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
