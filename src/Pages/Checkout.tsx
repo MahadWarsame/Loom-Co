@@ -4,7 +4,7 @@ import { useCart } from "../context/CartContext";
 import { supabase } from "../lib/supabase";
 
 function sek(n: number) {
-  return `${Math.round(n).toLocaleString("sv-SE")} kr`;
+  return Math.round(n).toLocaleString("sv-SE") + " kr";
 }
 
 type FormState = {
@@ -34,9 +34,11 @@ export function CheckoutPage() {
 
   if (items.length === 0 && !pendingPayment) {
     return (
-      <div className="mx-auto max-w-2xl px-5 py-20 text-center">
-        <h1 className="text-4xl">Your cart is empty</h1>
-        <Link to="/shop" className="mt-7 inline-flex bg-fg px-7 py-4 text-sm font-semibold text-bg">Shop rugs</Link>
+      <div className="min-h-[70vh] bg-[#faf9f6] px-5 py-20 text-center">
+        <h1 className="font-display text-4xl">Din varukorg är tom</h1>
+        <Link to="/shop" className="mt-7 inline-flex rounded-lg bg-fg px-7 py-4 text-sm font-semibold text-bg">
+          Handla mattor
+        </Link>
       </div>
     );
   }
@@ -72,7 +74,7 @@ export function CheckoutPage() {
       setError(
         [serverMessage, serverDetails].filter(Boolean).join(" ") ||
         paymentError?.message ||
-        "We couldn't start secure payment. Please try again.",
+        "Vi kunde inte starta den säkra betalningen. Försök igen.",
       );
       setSubmitting(false);
       return;
@@ -100,7 +102,7 @@ export function CheckoutPage() {
     });
 
     if (rpcError || !data?.order_id || !data?.checkout_token) {
-      setError(rpcError?.message || "We couldn't create your checkout. Please check your details and try again.");
+      setError(rpcError?.message || "Vi kunde inte skapa din beställning. Kontrollera dina uppgifter och försök igen.");
       setSubmitting(false);
       return;
     }
@@ -117,91 +119,124 @@ export function CheckoutPage() {
 
   if (pendingPayment) {
     return (
-      <div className="mx-auto max-w-2xl px-5 py-20 text-center sm:px-8">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">Order reserved</p>
-        <h1 className="mt-3 text-5xl">Complete your payment</h1>
-        <p className="mt-5 text-sm leading-7 text-mut">
-          Order <strong className="text-fg">{pendingPayment.orderNumber}</strong> is reserved for you for a limited time.
-        </p>
-        {error && <div role="alert" className="mt-6 border border-sale/30 bg-sale/5 p-4 text-left text-sm text-sale">{error}</div>}
-        <button
-          type="button"
-          onClick={() => void startPayment(pendingPayment)}
-          disabled={submitting}
-          className="mt-8 w-full bg-fg py-4 text-sm font-semibold text-bg disabled:cursor-wait disabled:opacity-50"
-        >
-          {submitting ? "Opening secure payment…" : "Continue to secure payment"}
-        </button>
-        <Link to="/shop" className="mt-4 inline-block text-xs text-mut hover:text-fg">Continue shopping</Link>
+      <div className="min-h-[70vh] bg-[#faf9f6] px-5 py-20 text-center">
+        <div className="mx-auto max-w-xl rounded-xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">Beställning reserverad</p>
+          <h1 className="mt-3 font-display text-4xl">Slutför din betalning</h1>
+          <p className="mt-4 text-sm leading-6 text-mut">
+            Order <strong className="text-fg">{pendingPayment.orderNumber}</strong> är reserverad för dig under en begränsad tid.
+          </p>
+          {error && <div role="alert" className="mt-5 rounded-lg border border-sale/30 bg-sale/5 p-4 text-left text-sm text-sale">{error}</div>}
+          <button
+            type="button"
+            onClick={() => void startPayment(pendingPayment)}
+            disabled={submitting}
+            className="mt-6 w-full rounded-lg bg-[#14b8a6] py-3.5 text-sm font-semibold text-white transition hover:bg-[#0d9488] disabled:cursor-wait disabled:opacity-50"
+          >
+            {submitting ? "Öppnar säker betalning…" : "Fortsätt till betalning"}
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[calc(100vh-72px)] bg-[#faf9f6]">
-      <div className="border-b border-line bg-bg">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
-          <Link to="/" className="font-display text-[25px] tracking-[-0.03em]">Loom <span className="text-gold">&amp;</span> Co</Link>
-          <div className="text-[11px] text-mut"><span className="font-medium text-fg">Checkout</span> <span className="mx-2">•</span> Secure payment</div>
+    <div className="min-h-[calc(100vh-72px)] bg-[#f7f7f7]">
+      <header className="border-b border-gray-200 bg-white">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-5 sm:px-6">
+          <Link to="/" className="font-display text-[24px] tracking-[-0.03em]">
+            Loom <span className="text-gold">&amp;</span> Co
+          </Link>
+          <span className="text-xs text-gray-500">Säker checkout</span>
         </div>
-      </div>
-      <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:px-10 lg:py-12">
-        <Link to="/cart" className="text-xs text-mut hover:text-fg">← Back to cart</Link>
-        <div className="mt-7 grid gap-10 lg:grid-cols-[minmax(0,1fr)_390px]">
-          <form onSubmit={submitOrder} className="space-y-8">
-          <section className="border border-line bg-bg p-5 sm:p-7">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">01 · Contact</p>
-            <h2 className="mt-1 font-display text-2xl">Your information</h2>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <label className="text-xs font-medium sm:col-span-2">Full name<input required value={form.name} onChange={(e) => update("name", e.target.value)} className="mt-2 h-12 w-full border border-line bg-bg px-3 text-sm outline-none focus:border-fg" /></label>
-              <label className="text-xs font-medium">Email<input required type="email" value={form.email} onChange={(e) => update("email", e.target.value)} className="mt-2 h-12 w-full border border-line bg-bg px-3 text-sm outline-none focus:border-fg" /></label>
-              <label className="text-xs font-medium">Phone<input type="tel" value={form.phone} onChange={(e) => update("phone", e.target.value)} className="mt-2 h-12 w-full border border-line bg-bg px-3 text-sm outline-none focus:border-fg" /></label>
+      </header>
+
+      <main className="mx-auto max-w-xl px-4 py-6 sm:px-6 sm:py-10">
+        <Link to="/cart" className="mb-5 inline-block text-xs text-gray-500 hover:text-gray-900">
+          ← Tillbaka till varukorgen
+        </Link>
+
+        <form onSubmit={submitOrder} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+          <section>
+            <h1 className="mb-3 text-lg font-bold text-gray-900">Dina uppgifter</h1>
+            <div className="overflow-hidden rounded-lg border border-gray-200 divide-y divide-gray-200">
+              <label className="block p-3">
+                <span className="mb-1 block text-xs text-gray-500">E-postadress</span>
+                <input required type="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="namn@exempel.se" autoComplete="email" className="w-full text-sm text-gray-800 outline-none placeholder:text-gray-400" />
+              </label>
+              <label className="block p-3">
+                <span className="mb-1 block text-xs text-gray-500">Mobiltelefonnummer</span>
+                <input type="tel" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="070-123 45 67" autoComplete="tel" className="w-full text-sm text-gray-800 outline-none placeholder:text-gray-400" />
+              </label>
             </div>
           </section>
 
-          <section className="border border-line bg-bg p-5 sm:p-7">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">02 · Delivery</p>
-            <h2 className="mt-1 font-display text-2xl">Shipping address</h2>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <label className="text-xs font-medium sm:col-span-2">Address<input required value={form.line1} onChange={(e) => update("line1", e.target.value)} className="mt-2 h-12 w-full border border-line bg-bg px-3 text-sm outline-none focus:border-fg" /></label>
-              <label className="text-xs font-medium sm:col-span-2">Apartment, floor, etc. <span className="font-normal text-mut">(optional)</span><input value={form.line2} onChange={(e) => update("line2", e.target.value)} className="mt-2 h-12 w-full border border-line bg-bg px-3 text-sm outline-none focus:border-fg" /></label>
-              <label className="text-xs font-medium">Postcode<input required value={form.postalCode} onChange={(e) => update("postalCode", e.target.value)} className="mt-2 h-12 w-full border border-line bg-bg px-3 text-sm outline-none focus:border-fg" /></label>
-              <label className="text-xs font-medium">City<input required value={form.city} onChange={(e) => update("city", e.target.value)} className="mt-2 h-12 w-full border border-line bg-bg px-3 text-sm outline-none focus:border-fg" /></label>
+          <section className="mt-6">
+            <h2 className="mb-3 text-lg font-bold text-gray-900">Leveransuppgifter</h2>
+            <div className="overflow-hidden rounded-lg border border-gray-200 divide-y divide-gray-200">
+              <label className="block p-3">
+                <span className="mb-1 block text-xs text-gray-500">Namn</span>
+                <input required value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="För- och efternamn" autoComplete="name" className="w-full text-sm text-gray-800 outline-none placeholder:text-gray-400" />
+              </label>
+              <label className="block p-3">
+                <span className="mb-1 block text-xs text-gray-500">Adress</span>
+                <input required value={form.line1} onChange={(e) => update("line1", e.target.value)} placeholder="Gatuadress och nummer" autoComplete="street-address" className="w-full text-sm text-gray-800 outline-none placeholder:text-gray-400" />
+              </label>
+              <label className="block p-3">
+                <span className="mb-1 block text-xs text-gray-500">Lägenhet, våning etc. <span className="text-gray-400">(valfritt)</span></span>
+                <input value={form.line2} onChange={(e) => update("line2", e.target.value)} placeholder="T.ex. lgh 1202" autoComplete="address-line2" className="w-full text-sm text-gray-800 outline-none placeholder:text-gray-400" />
+              </label>
+              <div className="grid grid-cols-2 divide-x divide-gray-200">
+                <label className="block p-3">
+                  <span className="mb-1 block text-xs text-gray-500">Postnummer</span>
+                  <input required value={form.postalCode} onChange={(e) => update("postalCode", e.target.value)} placeholder="123 45" autoComplete="postal-code" className="w-full text-sm text-gray-800 outline-none placeholder:text-gray-400" />
+                </label>
+                <label className="block p-3">
+                  <span className="mb-1 block text-xs text-gray-500">Ort</span>
+                  <input required value={form.city} onChange={(e) => update("city", e.target.value)} placeholder="Stockholm" autoComplete="address-level2" className="w-full text-sm text-gray-800 outline-none placeholder:text-gray-400" />
+                </label>
+              </div>
             </div>
           </section>
 
-          {error && <div role="alert" className="border border-sale/30 bg-sale/5 p-4 text-sm text-sale">{error}</div>}
+          <section className="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+            <h2 className="text-sm font-bold text-gray-900">Din beställning</h2>
+            <div className="mt-3 space-y-3">
+              {items.map((item) => (
+                <div key={item.variantId} className="flex justify-between gap-4 text-sm">
+                  <div className="min-w-0">
+                    <p className="truncate text-gray-800">{item.name}</p>
+                    <p className="mt-0.5 text-xs text-gray-500">{item.sizeLabel ? item.sizeLabel + " · " : ""}Antal: {item.quantity}</p>
+                  </div>
+                  <span className="shrink-0 text-gray-800">{sek(item.price * item.quantity)}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 space-y-2 border-t border-gray-200 pt-4 text-sm">
+              <div className="flex justify-between"><span className="text-gray-500">Delsumma</span><span>{sek(subtotal)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">Leverans</span><span>Beräknas i nästa steg</span></div>
+              <div className="flex justify-between border-t border-gray-200 pt-3 text-base font-bold"><span>Totalt</span><span>{sek(subtotal)}</span></div>
+            </div>
+          </section>
 
-          <div className="border border-line bg-bg p-5 sm:p-7">
-            <div className="flex items-center gap-3 text-xs text-mut"><span className="grid h-7 w-7 place-items-center rounded-full bg-soft text-fg">✓</span><span>Secure payment powered by Stripe</span></div>
-            <button type="submit" disabled={submitting} className="mt-5 w-full bg-fg py-4 text-sm font-semibold text-bg transition hover:bg-[#3a3731] disabled:cursor-wait disabled:opacity-50">
-              {submitting ? "Preparing secure payment…" : "Continue to secure payment"}
-            </button>
-            <p className="mt-3 text-center text-[11px] leading-5 text-mut">Your payment is processed securely. You will be redirected to Stripe after your order is reserved.</p>
+          {error && <div role="alert" className="mt-5 rounded-lg border border-sale/30 bg-sale/5 p-4 text-sm text-sale">{error}</div>}
+
+          <button type="submit" disabled={submitting} className="mt-6 w-full rounded-lg bg-[#14b8a6] py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0d9488] disabled:cursor-wait disabled:opacity-50">
+            {submitting ? "Förbereder betalning…" : "Fortsätt till betalning"}
+          </button>
+
+          <div className="space-y-3 pt-5 text-center">
+            <Link to="/info/contact" className="block text-xs text-gray-500 underline hover:text-gray-700">Dataskyddspolicy</Link>
+            <p className="text-[11px] text-gray-400">Säker betalning via Stripe</p>
+            <div className="flex flex-wrap items-center justify-center gap-2 opacity-80">
+              <span className="rounded border border-gray-300 bg-white px-2 py-1 text-[10px] font-bold text-red-600">mastercard</span>
+              <span className="rounded border border-gray-300 bg-white px-2 py-1 text-[10px] font-bold text-blue-700">VISA</span>
+              <span className="rounded border border-gray-300 bg-white px-2 py-1 text-[10px] font-bold text-gray-800"> Pay</span>
+              <span className="rounded border border-gray-300 bg-white px-2 py-1 text-[10px] font-bold text-blue-900">STRIPE</span>
+            </div>
           </div>
         </form>
-
-        <aside className="order-first h-fit border border-line bg-bg p-5 shadow-sm lg:sticky lg:top-28 lg:order-none sm:p-7">
-          <div className="flex items-baseline justify-between"><div><p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">Your selection</p><h2 className="mt-1 font-display text-2xl">Order summary</h2></div><span className="text-xs text-mut">{items.length} {items.length === 1 ? "item" : "items"}</span></div>
-          <div className="mt-5 divide-y divide-line border-y border-line">
-            {items.map((item) => (
-              <div key={item.variantId} className="flex justify-between gap-4 py-4 text-sm">
-                <div><div>{item.name}</div><div className="mt-1 text-xs text-mut">{item.sizeLabel ? `${item.sizeLabel} cm · ` : ""}Qty {item.quantity}</div></div>
-                <span className="shrink-0">{sek(item.price * item.quantity)}</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-5 space-y-3 border-t border-line pt-5 text-sm">
-            <div className="flex justify-between"><span className="text-mut">Subtotal</span><span>{sek(subtotal)}</span></div>
-            <div className="flex justify-between"><span className="text-mut">Delivery</span><span className="text-xs">Calculated at checkout</span></div>
-          </div>
-          <div className="mt-5 flex justify-between border-t border-line pt-5 text-lg font-semibold"><span>Total</span><span>{sek(subtotal)}</span></div>
-          <div className="mt-6 border-t border-line pt-5 text-[11px] leading-5 text-mut">
-            <p>✓ Secure checkout</p><p className="mt-1">✓ Payment handled by Stripe</p>
-          </div>
-          </aside>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
