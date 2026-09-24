@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import type { ProductWithDetails } from "../lib/types";
+import type { ProductWithDetails } from "../types";
 import { productImageUrl } from "../lib/images";
 
 function sek(n: number) {
@@ -7,7 +7,7 @@ function sek(n: number) {
 }
 
 export function ProductCard({ product }: { product: ProductWithDetails }) {
-  const cheapest = product.variants.reduce<typeof product.variants[number] | null>((best, v) => {
+  const cheapest = product.variants.reduce<(typeof product.variants)[number] | null>((best, v) => {
     const price = v.sale_price ?? v.regular_price;
     const bestPrice = best ? best.sale_price ?? best.regular_price : Infinity;
     return price < bestPrice ? v : best;
