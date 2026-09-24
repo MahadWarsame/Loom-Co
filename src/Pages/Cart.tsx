@@ -67,7 +67,7 @@ export function CartPage() {
             <div className="flex justify-between"><span className="text-mut">Delivery</span><span>Calculated at checkout</span></div>
           </div>
           <div className="flex justify-between pt-5 text-base font-semibold"><span>Total</span><span>{sek(subtotal)}</span></div>
-          <button type="button" disabled className="mt-6 w-full cursor-not-allowed bg-fg py-4 text-sm font-semibold text-bg opacity-50">Checkout coming next</button>
+          <Link to="/checkout" className="mt-6 flex w-full justify-center bg-fg py-4 text-sm font-semibold text-bg transition hover:bg-[#3a3731]">Continue to checkout</Link>
           <p className="mt-3 text-center text-[11px] leading-5 text-mut">Your cart is saved on this device. Checkout and secure payment will be connected next.</p>
         </aside>
       </div>
