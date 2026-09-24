@@ -226,11 +226,14 @@ export function CheckoutPage() {
                 <span>Ange postnummer</span>
                 <input required value={form.postalCode} onChange={(e) => update("postalCode", e.target.value.replace(/[^0-9 ]/g, "").slice(0, 6))} placeholder="123 45" inputMode="numeric" autoComplete="postal-code" className="mt-2 w-full rounded-lg border border-gray-200 p-3 text-sm outline-none focus:border-[#14b8a6]" />
               </label>
-              {validPostalCode && (
-                <button type="button" onClick={openShipping} className="mt-3 w-full rounded-lg bg-[#14b8a6] py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0d9488]">
-                  Välj fraktsätt
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={openShipping}
+                disabled={!validPostalCode}
+                className="mt-3 w-full rounded-lg bg-[#14b8a6] py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0d9488] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
+              >
+                Välj fraktsätt
+              </button>
             </div>
           </section>
 
