@@ -8,6 +8,7 @@ export function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const topLevel = (categories ?? []).filter((c) => c.parent_id === null).slice(0, 5);
+  const childrenOf = (parentId: string) => (categories ?? []).filter((c) => c.parent_id === parentId).sort((a, b) => a.sort_order - b.sort_order);
 
   function submitSearch(e: FormEvent) {
     e.preventDefault();
@@ -22,7 +23,24 @@ export function Header() {
         <Link to="/" className="font-display text-[25px] tracking-[-0.03em]">Loom <span className="text-gold">&amp;</span> Co</Link>
         <nav className="ml-auto hidden items-center gap-7 text-[13px] font-medium md:flex" aria-label="Main">
           <Link to="/shop" className="transition hover:text-gold">Shop all</Link>
-          {topLevel.map((c) => <Link key={c.id} to={`/shop?cat=${c.slug}`} className="transition hover:text-gold">{c.name}</Link>)}
+          {topLevel.map((c) => {
+            const children = childrenOf(c.id);
+            return (
+              <div key={c.id} className="group relative h-[72px] flex items-center">
+                <Link to={`/shop?cat=${c.slug}`} className="transition hover:text-gold">{c.name}</Link>
+                {children.length > 0 && (
+                  <div className="pointer-events-none absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 -translate-y-2 border border-line bg-bg p-3 opacity-0 shadow-xl transition-all duration-200 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">
+                    <div className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-gold">{c.name}</div>
+                    <div className="space-y-0.5">
+                      {children.map((child) => (
+                        <Link key={child.id} to={`/shop?cat=${child.slug}`} className="block px-2 py-2 text-sm transition hover:bg-soft hover:text-gold">{child.name}</Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
         <div className="ml-auto flex items-center gap-2 md:ml-5">
           <button type="button" aria-label="Search" aria-expanded={searchOpen} onClick={() => setSearchOpen((v) => !v)} className="grid h-10 w-10 place-items-center transition hover:bg-soft">
