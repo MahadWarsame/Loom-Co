@@ -7,6 +7,7 @@ import { ProductPage } from "./Pages/Product";
 import { NotFound } from "./Pages/NotFound";
 import { InfoPage } from "./Pages/Info";
 import { CartPage } from "./Pages/Cart";
+import { CheckoutPage } from "./Pages/Checkout";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/shop" element={<Shop />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/product/:slug" element={<ProductPage />} />
           <Route path="/info/:page" element={<InfoPage />} />
           <Route path="*" element={<NotFound />} />
