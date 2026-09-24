@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAvailability, useProduct } from "../lib/queries";
 import { productImageUrl } from "../lib/images";
+import type { ProductVariant } from "../types";
 
 function sek(n: number) {
   return `${Math.round(n).toLocaleString("sv-SE")} kr`;
@@ -57,7 +58,7 @@ export function ProductPage() {
             <div className="mt-4">
               <div className="mb-2 text-sm text-mut">Size</div>
               <div className="flex flex-wrap gap-2">
-                {product.variants.map((v, i) => (
+                {product.variants.map((v: ProductVariant, i: number) => (
                   <button
                     key={v.id}
                     onClick={() => setVariantIndex(i)}
@@ -83,7 +84,7 @@ export function ProductPage() {
             {Object.entries(product.attributes).map(([k, v]) => (
               <div key={k} className="flex justify-between py-2">
                 <dt className="text-mut">{k}</dt>
-                <dd>{v}</dd>
+                <dd>{String(v)}</dd>
               </div>
             ))}
           </dl>
