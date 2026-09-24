@@ -26,9 +26,9 @@ export type ShopFilters = {
 };
 
 /**
- * Loads active products plus their variants, first image, and the Color/Material
- * attributes, then joins them client-side. For a catalog this size a couple of
- * round trips is simpler and faster than one giant embedded query.
+ * Loads active products plus their variants, images and attributes.
+ * Category/color/material filters are applied after the nested data is assembled
+ * so category navigation cannot accidentally return the same unfiltered products.
  */
 export function useProducts(filters: ShopFilters) {
   return useQuery({
@@ -41,19 +41,17 @@ export function useProducts(filters: ShopFilters) {
         )
         .eq("status", "active");
 
-      if (filters.categorySlug) {
-        query = query.eq("product_categories.categories.slug", filters.categorySlug);
-      }
       if (filters.q) {
         query = query.textSearch("search", filters.q, { type: "websearch" });
       }
 
-      const { data, error } = await query.limit(200);
+      const { data, error } = await query.limit(1000);
       if (error) throw error;
 
       const products: ProductWithDetails[] = (data ?? []).map((row: any) => {
         const attributes: Record<string, string> = {};
         for (const a of row.product_attributes ?? []) attributes[a.key] = a.value;
+
         return {
           id: row.id,
           sku: row.sku,
@@ -66,11 +64,14 @@ export function useProducts(filters: ShopFilters) {
           variants: (row.product_variants ?? []) as ProductVariant[],
           images: ((row.product_images ?? []) as ProductImage[]).sort((a, b) => a.position - b.position),
           attributes,
-          categorySlugs: (row.product_categories ?? []).map((pc: any) => pc.categories?.slug).filter(Boolean),
+          categorySlugs: (row.product_categories ?? [])
+            .map((pc: any) => pc.categories?.slug)
+            .filter(Boolean),
         };
       });
 
       return products.filter((p) => {
+        if (filters.categorySlug && !p.categorySlugs.includes(filters.categorySlug)) return false;
         if (filters.color && p.attributes.Color !== filters.color) return false;
         if (filters.material && p.attributes.Material !== filters.material) return false;
         return true;
