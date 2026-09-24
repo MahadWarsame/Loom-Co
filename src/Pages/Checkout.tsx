@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { supabase } from "../lib/supabase";
 
@@ -17,29 +17,22 @@ type FormState = {
   city: string;
 };
 
+type PendingPayment = {
+  orderId: string;
+  orderNumber: string;
+  checkoutToken: string;
+};
+
 export function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
-  const navigate = useNavigate();
   const [form, setForm] = useState<FormState>({
     name: "", email: "", phone: "", line1: "", line2: "", postalCode: "", city: "",
   });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [orderNumber, setOrderNumber] = useState("");
+  const [pendingPayment, setPendingPayment] = useState<PendingPayment | null>(null);
 
-  if (orderNumber) {
-    return (
-      <div className="mx-auto max-w-2xl px-5 py-20 text-center sm:px-8">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">Order received</p>
-        <h1 className="mt-3 text-5xl">Thank you</h1>
-        <p className="mt-5 text-sm leading-7 text-mut">Your order has been created successfully. Your order number is <strong className="text-fg">{orderNumber}</strong>.</p>
-        <p className="mt-3 text-sm leading-7 text-mut">We will use the email address you provided for order communication. Payment will be connected in the next step.</p>
-        <Link to="/shop" className="mt-8 inline-flex bg-fg px-7 py-4 text-sm font-semibold text-bg transition hover:bg-[#3a3731]">Continue shopping</Link>
-      </div>
-    );
-  }
-
-  if (items.length === 0) {
+  if (items.length === 0 && !pendingPayment) {
     return (
       <div className="mx-auto max-w-2xl px-5 py-20 text-center">
         <h1 className="text-4xl">Your cart is empty</h1>
@@ -48,7 +41,26 @@ export function CheckoutPage() {
     );
   }
 
-  const update = (key: keyof FormState, value: string) => setForm((current) => ({ ...current, [key]: value }));
+  const update = (key: keyof FormState, value: string) =>
+    setForm((current) => ({ ...current, [key]: value }));
+
+  async function startPayment(payment: PendingPayment) {
+    setError("");
+    setSubmitting(true);
+
+    const { data, error: paymentError } = await supabase.functions.invoke("create-payment-session", {
+      body: { orderId: payment.orderId, checkoutToken: payment.checkoutToken },
+    });
+
+    if (paymentError || !data?.url) {
+      setError(paymentError?.message || data?.error || "We couldn't start secure payment. Please try again.");
+      setSubmitting(false);
+      return;
+    }
+
+    clearCart();
+    window.location.assign(data.url);
+  }
 
   async function submitOrder(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -67,15 +79,42 @@ export function CheckoutPage() {
       p_items: items.map((item) => ({ variantId: item.variantId, quantity: item.quantity })),
     });
 
-    if (rpcError) {
-      setError(rpcError.message || "We couldn't create your order. Please check your details and try again.");
+    if (rpcError || !data?.order_id || !data?.checkout_token) {
+      setError(rpcError?.message || "We couldn't create your checkout. Please check your details and try again.");
       setSubmitting(false);
       return;
     }
 
-    setOrderNumber(data?.order_number ?? "");
-    clearCart();
-    setSubmitting(false);
+    const payment: PendingPayment = {
+      orderId: data.order_id,
+      orderNumber: data.order_number,
+      checkoutToken: data.checkout_token,
+    };
+
+    setPendingPayment(payment);
+    await startPayment(payment);
+  }
+
+  if (pendingPayment) {
+    return (
+      <div className="mx-auto max-w-2xl px-5 py-20 text-center sm:px-8">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">Order reserved</p>
+        <h1 className="mt-3 text-5xl">Complete your payment</h1>
+        <p className="mt-5 text-sm leading-7 text-mut">
+          Order <strong className="text-fg">{pendingPayment.orderNumber}</strong> is reserved for you for a limited time.
+        </p>
+        {error && <div role="alert" className="mt-6 border border-sale/30 bg-sale/5 p-4 text-left text-sm text-sale">{error}</div>}
+        <button
+          type="button"
+          onClick={() => void startPayment(pendingPayment)}
+          disabled={submitting}
+          className="mt-8 w-full bg-fg py-4 text-sm font-semibold text-bg disabled:cursor-wait disabled:opacity-50"
+        >
+          {submitting ? "Opening secure payment…" : "Continue to secure payment"}
+        </button>
+        <Link to="/shop" className="mt-4 inline-block text-xs text-mut hover:text-fg">Continue shopping</Link>
+      </div>
+    );
   }
 
   return (
@@ -110,9 +149,9 @@ export function CheckoutPage() {
           {error && <div role="alert" className="border border-sale/30 bg-sale/5 p-4 text-sm text-sale">{error}</div>}
 
           <button type="submit" disabled={submitting} className="w-full bg-fg py-4 text-sm font-semibold text-bg transition hover:bg-[#3a3731] disabled:cursor-wait disabled:opacity-50">
-            {submitting ? "Creating order…" : "Place order"}
+            {submitting ? "Preparing secure payment…" : "Continue to payment"}
           </button>
-          <p className="text-center text-xs leading-5 text-mut">No payment is taken yet. Payment processing will be connected after the order flow is verified.</p>
+          <p className="text-center text-xs leading-5 text-mut">You will be redirected to Stripe's secure payment page. Payment is confirmed by webhook before the order is fulfilled.</p>
         </form>
 
         <aside className="h-fit border border-line bg-soft/40 p-6 lg:sticky lg:top-28">
