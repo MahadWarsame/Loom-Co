@@ -1,0 +1,9 @@
+# Dependencies
+node_modules
+
+# Environment variables (This is telling Git to ignore your .env file)
+.env
+.env.local
+
+# Build outputs
+dist
