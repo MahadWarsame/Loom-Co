@@ -1,12 +1,14 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCategories } from "../lib/queries";
+import { useCart } from "../context/CartContext";
 
 export function Header() {
   const { data: categories } = useCategories();
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const { itemCount } = useCart();
   const topLevel = (categories ?? []).filter((c) => c.parent_id === null).slice(0, 5);
   const childrenOf = (parentId: string) => (categories ?? []).filter((c) => c.parent_id === parentId).sort((a, b) => a.sort_order - b.sort_order);
 
@@ -47,7 +49,7 @@ export function Header() {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.2 4.2"/></svg>
           </button>
           <button aria-label="Wishlist" className="hidden h-10 w-10 place-items-center transition hover:bg-soft sm:grid"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5"><path d="M20.8 8.7c0 5.1-8.8 10-8.8 10s-8.8-4.9-8.8-10A4.6 4.6 0 0 1 12 6.4a4.6 4.6 0 0 1 8.8 2.3Z"/></svg></button>
-          <button aria-label="Cart" className="relative grid h-10 w-10 place-items-center transition hover:bg-soft"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5"><path d="M4 5h2l1.6 10.2a2 2 0 0 0 2 1.8h7.7a2 2 0 0 0 2-1.6L21 8H7"/><circle cx="10" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg></button>
+          <Link to="/cart" aria-label={`Cart${itemCount ? `, ${itemCount} items` : ""}`} className="relative grid h-10 w-10 place-items-center transition hover:bg-soft"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5"><path d="M4 5h2l1.6 10.2a2 2 0 0 0 2 1.8h7.7a2 2 0 0 0 2-1.6L21 8H7"/><circle cx="10" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>{itemCount > 0 && <span className="absolute right-0.5 top-0.5 grid min-h-4 min-w-4 place-items-center rounded-full bg-fg px-1 text-[9px] font-semibold text-bg">{itemCount > 99 ? "99+" : itemCount}</span>}</Link>
         </div>
       </div>
       {searchOpen && (
