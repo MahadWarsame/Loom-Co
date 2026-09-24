@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { supabase } from "../lib/supabase";
@@ -50,7 +50,7 @@ export function CheckoutPage() {
 
   const update = (key: keyof FormState, value: string) => setForm((current) => ({ ...current, [key]: value }));
 
-  async function submitOrder(event: React.FormEvent<HTMLFormElement>) {
+  async function submitOrder(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     setSubmitting(true);
