@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useAvailability, useProduct } from "../lib/queries";
 import { productImageUrl } from "../lib/images";
 import type { ProductVariant } from "../types";
+import { useCart, cartItemFromProduct } from "../context/CartContext";
 
 function sek(n: number) {
   return `${Math.round(n).toLocaleString("sv-SE")} kr`;
@@ -14,6 +15,8 @@ export function ProductPage() {
   const { data: availability } = useAvailability(product ? [product.id] : []);
   const [variantIndex, setVariantIndex] = useState(0);
   const [imageIndex, setImageIndex] = useState(0);
+  const [added, setAdded] = useState(false);
+  const { addItem } = useCart();
 
   if (isLoading) return <p className="mx-auto max-w-7xl px-5 py-20 text-mut">Loading…</p>;
   if (!product) return <p className="mx-auto max-w-7xl px-5 py-20">We can't find that rug.</p>;
@@ -35,6 +38,13 @@ export function ProductPage() {
       : avail.low_stock
         ? "Low stock"
         : "In stock";
+
+  const addToCart = () => {
+    if (!variant || !avail?.in_stock) return;
+    addItem(cartItemFromProduct(product, variant, activeImage?.storage_path ?? null));
+    setAdded(true);
+    window.setTimeout(() => setAdded(false), 1800);
+  };
 
   const showPreviousImage = () => {
     if (images.length < 2) return;
@@ -130,7 +140,7 @@ export function ProductPage() {
           </div>
         )}
 
-        <button disabled={!avail?.in_stock} className="mt-8 w-full bg-fg py-4 text-sm font-semibold text-bg transition hover:bg-[#3a3731] disabled:cursor-not-allowed disabled:opacity-40">Add to cart</button>
+        <button type="button" onClick={addToCart} disabled={!avail?.in_stock} className="mt-8 w-full bg-fg py-4 text-sm font-semibold text-bg transition hover:bg-[#3a3731] disabled:cursor-not-allowed disabled:opacity-40">{added ? "Added to cart ✓" : "Add to cart"}</button>
         <div className="mt-4 grid grid-cols-2 gap-2">{["Carefully selected", "Secure checkout", "Easy support", "Quality checked"].map((item) => <div key={item} className="border border-line px-3 py-3 text-center text-[11px] text-mut">{item}</div>)}</div>
         <dl className="mt-8 divide-y divide-line border-t border-line text-sm">{Object.entries(product.attributes).map(([k, v]) => <div key={k} className="flex justify-between gap-6 py-3"><dt className="text-mut">{k}</dt><dd className="text-right">{String(v)}</dd></div>)}</dl>
       </div>
