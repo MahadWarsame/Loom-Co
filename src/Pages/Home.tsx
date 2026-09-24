@@ -45,7 +45,14 @@ export function Home() {
       {collections.length > 0 && <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:px-10">
         <div className="mb-9 flex items-end justify-between gap-6"><div><p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">Explore</p><h2 className="mt-2 text-4xl">Shop by collection</h2></div><Link to="/shop" className="hidden text-sm font-semibold underline underline-offset-4 sm:block">View all</Link></div>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {collections.map((c) => { const image = (products ?? []).find((p) => p.category_id === c.id)?.images[0]; return <Link key={c.id} to={`/shop?cat=${c.slug}`} className="group relative aspect-[3/4] overflow-hidden bg-soft">{image && <img src={productImageUrl(image.storage_path)} alt={image.alt_text ?? c.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" loading="lazy" />}<div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent" /><div className="absolute bottom-0 left-0 right-0 p-5 text-white"><p className="text-lg font-medium">{c.name}</p><span className="mt-1 inline-block text-xs opacity-80">Shop collection →</span></div></Link> })}
+          {collections.map((c) => {
+            const image = (products ?? []).find((p) => p.categorySlugs.includes(c.slug))?.images[0];
+            return <Link key={c.id} to={`/shop?cat=${c.slug}`} className="group relative aspect-[3/4] overflow-hidden bg-soft">
+              {image && <img src={productImageUrl(image.storage_path)} alt={image.alt_text ?? c.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" loading="lazy" />}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-5 text-white"><p className="text-lg font-medium">{c.name}</p><span className="mt-1 inline-block text-xs opacity-80">Shop collection →</span></div>
+            </Link>;
+          })}
         </div>
       </section>}
 
