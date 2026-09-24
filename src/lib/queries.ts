@@ -44,6 +44,29 @@ export function useProducts(filters: ShopFilters) {
       const { data, error } = await query.limit(1000);
       if (error) throw error;
 
+      const { data: allCategories, error: categoryError } = await supabase
+        .from("categories")
+        .select("id,slug,parent_id");
+      if (categoryError) throw categoryError;
+
+      const categoryById = new Map((allCategories ?? []).map((c: any) => [c.id, c]));
+      const descendantSlugs = new Set<string>();
+      if (filters.categorySlug) {
+        const selected = (allCategories ?? []).find((c: any) => c.slug === filters.categorySlug);
+        if (selected) {
+          const collect = (parentId: string) => {
+            for (const category of allCategories ?? []) {
+              if (category.parent_id === parentId) {
+                descendantSlugs.add(category.slug);
+                collect(category.id);
+              }
+            }
+          };
+          descendantSlugs.add(selected.slug);
+          collect(selected.id);
+        }
+      }
+
       const products: ProductWithDetails[] = (data ?? []).map((row: any) => {
         const attributes: Record<string, string> = {};
         for (const a of row.product_attributes ?? []) attributes[a.key] = a.value;
@@ -60,23 +83,9 @@ export function useProducts(filters: ShopFilters) {
           variants: (row.product_variants ?? []) as ProductVariant[],
           images: ((row.product_images ?? []) as ProductImage[]).sort((a, b) => a.position - b.position),
           attributes,
-          categorySlugs: (() => {
-            const categoryRows = (row.product_categories ?? [])
-              .map((pc: any) => pc.categories)
-              .filter(Boolean);
-            const byId = new Map(categoryRows.map((c: any) => [c.id, c]));
-            const slugs = new Set<string>();
-            for (const category of categoryRows) {
-              let current = category;
-              const seen = new Set<string>();
-              while (current && !seen.has(current.id)) {
-                seen.add(current.id);
-                if (current.slug) slugs.add(current.slug);
-                current = current.parent_id ? byId.get(current.parent_id) : undefined;
-              }
-            }
-            return [...slugs];
-          })(),
+          categorySlugs: (row.product_categories ?? [])
+            .map((pc: any) => pc.categories?.slug)
+            .filter(Boolean),
         };
       });
 
@@ -89,7 +98,7 @@ export function useProducts(filters: ShopFilters) {
             .toLowerCase();
           if (!haystack.includes(search)) return false;
         }
-        if (filters.categorySlug && !p.categorySlugs.includes(filters.categorySlug)) return false;
+        if (filters.categorySlug && !p.categorySlugs.some((slug) => descendantSlugs.has(slug))) return false;
         if (filters.color && p.attributes.Color !== filters.color) return false;
         if (filters.material && p.attributes.Material !== filters.material) return false;
         return true;
