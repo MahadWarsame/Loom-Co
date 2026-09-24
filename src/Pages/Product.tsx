@@ -13,26 +13,82 @@ export function ProductPage() {
   const { data: product, isLoading } = useProduct(slug);
   const { data: availability } = useAvailability(product ? [product.id] : []);
   const [variantIndex, setVariantIndex] = useState(0);
+  const [imageIndex, setImageIndex] = useState(0);
 
   if (isLoading) return <p className="mx-auto max-w-7xl px-5 py-20 text-mut">Loading…</p>;
   if (!product) return <p className="mx-auto max-w-7xl px-5 py-20">We can't find that rug.</p>;
 
+  const images = product.images;
+  const activeImage = images[imageIndex] ?? images[0];
   const variant = product.variants[variantIndex];
   const avail = availability?.find((a) => a.variant_id === variant?.id);
   const stockLabel = !avail || !avail.in_stock ? "Out of stock" : avail.low_stock ? "Low stock" : "In stock";
-  const image = product.images[0];
+
+  const showPreviousImage = () => {
+    if (images.length < 2) return;
+    setImageIndex((current) => (current - 1 + images.length) % images.length);
+  };
+
+  const showNextImage = () => {
+    if (images.length < 2) return;
+    setImageIndex((current) => (current + 1) % images.length);
+  };
 
   return <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:px-10">
     <div className="mb-7 text-xs text-mut"><Link to="/shop" className="hover:text-fg">Shop</Link><span className="mx-2">/</span>{product.name}</div>
     <div className="grid gap-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-16">
       <div className="grid gap-3 sm:grid-cols-[90px_1fr]">
         <div className="order-2 flex gap-2 overflow-x-auto sm:order-1 sm:flex-col">
-          {product.images.slice(0, 5).map((img, i) => <div key={img.storage_path || `image-${i}`} className={`h-20 w-16 shrink-0 overflow-hidden bg-soft sm:h-24 sm:w-full ${i === 0 ? "ring-1 ring-fg" : ""}`}>
-            <img src={productImageUrl(img.storage_path)} alt={img.alt_text ?? product.name} className="h-full w-full object-cover" loading="lazy" />
-          </div>)}
+          {images.map((img, i) => (
+            <button
+              key={img.storage_path || `image-${i}`}
+              type="button"
+              onClick={() => setImageIndex(i)}
+              aria-label={`View image ${i + 1} of ${images.length}`}
+              aria-current={i === imageIndex ? "true" : undefined}
+              className={`h-20 w-16 shrink-0 overflow-hidden bg-soft transition sm:h-24 sm:w-full ${i === imageIndex ? "ring-2 ring-fg" : "opacity-70 hover:opacity-100"}`}
+            >
+              <img src={productImageUrl(img.storage_path)} alt={img.alt_text ?? `${product.name} view ${i + 1}`} className="h-full w-full object-cover" loading={i === 0 ? "eager" : "lazy"} />
+            </button>
+          ))}
         </div>
-        <div className="order-1 aspect-[4/5] overflow-hidden bg-soft sm:order-2">{image && <img src={productImageUrl(image.storage_path)} alt={image.alt_text ?? product.name} className="h-full w-full object-cover" />}</div>
+
+        <div className="relative order-1 aspect-[4/5] overflow-hidden bg-soft sm:order-2">
+          {activeImage && (
+            <img
+              key={activeImage.storage_path}
+              src={productImageUrl(activeImage.storage_path)}
+              alt={activeImage.alt_text ?? product.name}
+              className="h-full w-full object-cover"
+            />
+          )}
+
+          {images.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={showPreviousImage}
+                aria-label="Previous product image"
+                className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-bg/90 text-fg shadow-md transition hover:scale-105"
+              >
+                <span aria-hidden="true">←</span>
+              </button>
+              <button
+                type="button"
+                onClick={showNextImage}
+                aria-label="Next product image"
+                className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-bg/90 text-fg shadow-md transition hover:scale-105"
+              >
+                <span aria-hidden="true">→</span>
+              </button>
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-fg/80 px-3 py-1 text-[11px] font-medium text-bg">
+                {imageIndex + 1} / {images.length}
+              </div>
+            </>
+          )}
+        </div>
       </div>
+
       <div className="lg:pt-6">
         <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">Loom &amp; Co · Curated piece</p>
         <h1 className="mt-3 text-4xl leading-tight sm:text-5xl">{product.name}</h1>
