@@ -88,7 +88,6 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
               </div>
               <p className="mt-2 text-[11px] leading-5 text-mut">Delivery is calculated at checkout.</p>
               <Link to="/checkout" onClick={onClose} className="mt-4 flex w-full justify-center bg-fg py-4 text-sm font-semibold text-bg transition hover:bg-[#3a3731]">Continue to checkout</Link>
-              <Link to="/cart" onClick={onClose} className="mt-3 flex w-full justify-center border border-line py-3 text-xs font-medium transition hover:bg-bg">View full cart</Link>
             </div>
           </>
         )}
