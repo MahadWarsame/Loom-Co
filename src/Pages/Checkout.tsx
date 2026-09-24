@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { supabase } from "../lib/supabase";
+import { productImageUrl } from "../lib/images";
 
 function sek(n: number) {
   return Math.round(n).toLocaleString("sv-SE") + " kr";
@@ -192,7 +193,7 @@ export function CheckoutPage() {
               {items.map((item) => (
                 <div key={item.variantId} className="flex gap-3 p-3">
                   {item.imagePath ? (
-                    <img src={item.imagePath} alt="" className="h-16 w-16 rounded-md object-cover" />
+                    <img src={productImageUrl(item.imagePath)} alt="" className="h-16 w-16 rounded-md object-cover" />
                   ) : (
                     <div className="h-16 w-16 rounded-md bg-gray-100" />
                   )}
