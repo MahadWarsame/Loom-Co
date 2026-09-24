@@ -1,10 +1,10 @@
 import { Route, Routes } from "react-router-dom";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
-import { Home } from "./pages/Home";
-import { Shop } from "./pages/Shop";
-import { ProductPage } from "./pages/Product";
-import { NotFound } from "./pages/NotFound";
+import { Home } from "./Pages/Home";
+import { Shop } from "./Pages/Shop";
+import { ProductPage } from "./Pages/Product";
+import { NotFound } from "./Pages/NotFound";
 
 export default function App() {
   return (
