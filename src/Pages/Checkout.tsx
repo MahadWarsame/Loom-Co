@@ -29,10 +29,10 @@ type PendingPayment = {
 };
 
 const carriers: Array<{ id: Carrier; name: string; price: number; note: string }> = [
-  { id: "schenker", name: "Schenker", price: 49, note: "Leverans till ombud" },
-  { id: "citymail", name: "Citymail", price: 59, note: "Hemleverans" },
-  { id: "instabox", name: "Instabox", price: 69, note: "Leverans till paketbox" },
-  { id: "budbee", name: "Budbee", price: 79, note: "Snabb hemleverans" },
+  { id: "schenker", name: "Schenker", price: 99, note: "Leverans till ombud · Standard 99 kr" },
+  { id: "citymail", name: "Citymail", price: 99, note: "Hemleverans · Standard 99 kr" },
+  { id: "instabox", name: "Instabox", price: 99, note: "Leverans till paketbox · Standard 99 kr" },
+  { id: "budbee", name: "Budbee", price: 99, note: "Snabb hemleverans · Standard 99 kr" },
 ];
 
 export function CheckoutPage() {
