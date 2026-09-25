@@ -1,5 +1,11 @@
 # Loom & Co — storefront (Stage 1–2)
 
+
+https://share.snapchat.com/m/OMPwJa8LSMmOQWR9nHDANQGg2cpNPHhjpS8etwk1zqY?share_id=EpnYb7TjTQE&locale=en-SE-u-mu-celsius
+
+
+
+
 React + TypeScript + Vite + Tailwind, reading the live catalog from Supabase
 (project `rug-store`, 848 products / 1,665 variants / 3,904 images already
 imported).
