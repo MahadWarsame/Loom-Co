@@ -15,7 +15,16 @@ export function Home() {
   const hasMore = visibleCount < productPool.length;
   const heroProduct = productPool[0];
   const heroImage = heroProduct?.images[0];
-  const collections = (categories ?? []).filter((c) => c.parent_id === null).slice(0, 4);
+
+  // Keep the homepage focused on four strong, recognisable collections.
+  // These are intentionally fixed so adding more database categories does not
+  // change the homepage layout or replace the curated collection selection.
+  const mainCollections = [
+    { slug: "rugs-persian", name: "Persian", eyebrow: "Heritage & craft" },
+    { slug: "rugs-vintage", name: "Vintage", eyebrow: "Character & patina" },
+    { slug: "rugs-modern", name: "Modern", eyebrow: "Clean & contemporary" },
+    { slug: "rugs-gabbeh", name: "Gabbeh", eyebrow: "Texture & warmth" },
+  ];
 
   useEffect(() => setVisibleCount(8), [products]);
   useEffect(() => {
@@ -74,7 +83,43 @@ export function Home() {
         </div>
       </section>
       <section className="border-b border-line bg-bg"><div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-line px-5 sm:grid-cols-4 sm:px-8 lg:px-10">{[["01","Curated collection","Distinctive rugs, selected one by one."],["02","Honest materials","Clear details on every piece."],["03","Made for living","Pieces chosen for real homes."],["04","Personal service","Here when you need help choosing."]].map(([n,title,text]) => <div key={n} className="border-b border-line px-4 py-7 first:pl-0 sm:border-b-0 sm:px-6 lg:px-8"><span className="text-[10px] font-semibold tracking-[0.2em] text-gold">{n}</span><h2 className="mt-2 text-base">{title}</h2><p className="mt-1 text-xs leading-5 text-mut">{text}</p></div>)}</div></section>
-      {collections.length > 0 && <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:px-10"><div className="mb-9 flex items-end justify-between gap-6"><div><p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">Explore</p><h2 className="mt-2 text-4xl">Shop by collection</h2></div><Link to="/shop" className="hidden text-sm font-semibold underline underline-offset-4 sm:block">View all</Link></div><div className="grid grid-cols-2 gap-3 md:grid-cols-4">{collections.map((c) => { const slugs = collectionSlugs(c.slug); const collectionProduct = (products ?? []).find((p) => p.categorySlugs.some((slug) => slugs.has(slug)) && p.images.length > 0); const image = collectionProduct?.images[0]; return <Link key={c.id} to={`/shop?cat=${c.slug}`} className="group relative aspect-[3/4] overflow-hidden bg-soft">{image ? <img src={productImageUrl(image.storage_path)} alt={image.alt_text ?? c.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" loading="lazy" /> : <div className="flex h-full items-center justify-center px-5 text-center text-sm text-mut">Explore {c.name}</div>}<div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent" /><div className="absolute bottom-0 left-0 right-0 p-5 text-white"><p className="text-lg font-medium">{c.name}</p><span className="mt-1 inline-block text-xs opacity-80 transition group-hover:translate-x-1">Shop collection →</span></div></Link>; })}</div></section>}
+
+      <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:px-10">
+        <div className="mb-9 flex items-end justify-between gap-6">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">Explore</p>
+            <h2 className="mt-2 text-4xl">Shop by collection</h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-mut">Four signature collections to help you find the right character for your space.</p>
+          </div>
+          <Link to="/shop" className="hidden text-sm font-semibold underline underline-offset-4 sm:block">View all</Link>
+        </div>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {mainCollections.map((collection) => {
+            const slugs = collectionSlugs(collection.slug);
+            const collectionProduct = (products ?? []).find(
+              (p) => p.images.length > 0 && p.categorySlugs.some((slug) => slugs.has(slug)),
+            );
+            const image = collectionProduct?.images[0];
+
+            return (
+              <Link key={collection.slug} to={`/shop?cat=${collection.slug}`} className="group relative aspect-[3/4] overflow-hidden bg-soft">
+                {image ? (
+                  <img src={productImageUrl(image.storage_path)} alt={image.alt_text ?? `${collection.name} rug collection`} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" loading="lazy" />
+                ) : (
+                  <div className="flex h-full items-center justify-center px-5 text-center text-sm text-mut">Explore {collection.name}</div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">{collection.eyebrow}</p>
+                  <p className="mt-1 text-xl font-medium">{collection.name}</p>
+                  <span className="mt-2 inline-block text-xs opacity-85 transition group-hover:translate-x-1">Shop collection →</span>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
       <section className="mx-auto max-w-7xl px-5 pb-20 sm:px-8 lg:px-10"><div className="mb-9 flex items-end justify-between gap-6"><div><p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">The edit</p><h2 className="mt-2 text-4xl">Selected for you</h2></div><Link to="/shop" className="text-sm font-semibold underline underline-offset-4">Shop all</Link></div>{isLoading ? <div className="grid grid-cols-2 gap-5 md:grid-cols-4">{Array.from({length:4}).map((_,i)=><div key={i} className="aspect-[4/5] animate-pulse bg-soft" />)}</div> : <><div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4 md:gap-x-6">{shown.map((p)=><ProductCard key={p.id} product={p}/>)}</div>{hasMore && <div ref={loadMoreRef} className="flex min-h-24 items-center justify-center pt-10"><span className="text-xs text-mut">Loading more rugs…</span></div>}</>}</section>
       <section className="bg-fg text-bg"><div className="mx-auto max-w-4xl px-5 py-20 text-center sm:px-8"><p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#c7a66d]">Loom &amp; Co</p><h2 className="mt-4 text-4xl leading-tight sm:text-5xl">The finishing layer your room has been waiting for.</h2><p className="mx-auto mt-5 max-w-2xl text-sm leading-6 text-white/60">Take your time. Find a piece that feels right, then make it part of your home.</p><Link to="/shop" className="mt-8 inline-flex border border-white/30 px-7 py-3.5 text-sm font-semibold transition hover:bg-bg hover:text-fg">Discover the rugs</Link></div></section>
     </div>
