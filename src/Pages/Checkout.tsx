@@ -9,8 +9,6 @@ function sek(n: number) {
 }
 
 type CustomerType = "private" | "business";
-type Carrier = "schenker" | "citymail" | "instabox" | "budbee";
-
 type FormState = {
   name: string;
   email: string;
@@ -28,20 +26,10 @@ type PendingPayment = {
   checkoutToken: string;
 };
 
-const carriers: Array<{ id: Carrier; name: string; price: number; note: string }> = [
-  { id: "schenker", name: "Schenker", price: 99, note: "Leverans till ombud · Standard 99 kr" },
-  { id: "citymail", name: "Citymail", price: 99, note: "Hemleverans · Standard 99 kr" },
-  { id: "instabox", name: "Instabox", price: 99, note: "Leverans till paketbox · Standard 99 kr" },
-  { id: "budbee", name: "Budbee", price: 99, note: "Snabb hemleverans · Standard 99 kr" },
-];
-
 export function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [customerType, setCustomerType] = useState<CustomerType>("private");
-  const [selectedCarrier, setSelectedCarrier] = useState<Carrier | null>(null);
-  const [priorityPacking, setPriorityPacking] = useState(false);
-  const [pickupLocation, setPickupLocation] = useState("");
   const [form, setForm] = useState<FormState>({
     name: "",
     email: "",
@@ -71,23 +59,12 @@ export function CheckoutPage() {
   }
 
   const validPostalCode = /^\d{3}\s?\d{2}$/.test(form.postalCode.trim());
-  const selectedShipping = carriers.find((carrier) => carrier.id === selectedCarrier);
-  const shippingPrice = selectedShipping?.price ?? 0;
+  const shippingPrice = 99;
 
-  function openShipping() {
+  function openContactDetails() {
     if (!validPostalCode) return;
     setError("");
     setStep(2);
-  }
-
-  function openPaymentDetails() {
-    if (!selectedCarrier) return;
-    if ((selectedCarrier === "instabox" || selectedCarrier === "budbee") && !pickupLocation) {
-      setError("Välj leveransalternativ innan du fortsätter.");
-      return;
-    }
-    setError("");
-    setStep(3);
   }
 
   async function startPayment(payment: PendingPayment) {
@@ -235,7 +212,7 @@ export function CheckoutPage() {
               ))}
               <div className="space-y-2 bg-gray-50 p-3 text-sm">
                 <div className="flex justify-between"><span className="text-gray-500">Delsumma</span><span>{sek(subtotal)}</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">Leverans</span><span>{selectedShipping ? sek(shippingPrice) : "Välj senare"}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">Leverans</span><span>{sek(shippingPrice)}</span></div>
                 <div className="flex justify-between border-t border-gray-200 pt-2 font-bold"><span>Totalt</span><span>{sek(subtotal + shippingPrice)}</span></div>
               </div>
             </div>
@@ -256,68 +233,31 @@ export function CheckoutPage() {
                 <span>Ange postnummer</span>
                 <input required value={form.postalCode} onChange={(e) => update("postalCode", e.target.value.replace(/[^0-9 ]/g, "").slice(0, 6))} placeholder="123 45" inputMode="numeric" autoComplete="postal-code" className="mt-2 w-full rounded-lg border border-gray-200 p-3 text-sm outline-none focus:border-[#14b8a6]" />
               </label>
-              <button type="button" onClick={openShipping} disabled={!validPostalCode} className="mt-3 w-full rounded-lg bg-[#14b8a6] py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0d9488] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400">
-                Välj fraktsätt
+              <button type="button" onClick={openContactDetails} disabled={!validPostalCode} className="mt-3 w-full rounded-lg bg-[#14b8a6] py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0d9488] disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400">
+                Fortsätt
               </button>
             </div>
           </section>
 
-          {step >= 2 && (
-            <div className="border-t border-gray-200">
-              <button type="button" onClick={() => setStep(step === 2 ? 1 : 2)} className="flex w-full items-center justify-between px-4 py-4 text-left sm:px-6">
-                <span className="font-bold text-gray-900">Steg 2 · Välj fraktsätt</span><span className="text-lg text-gray-400">⌃</span>
-              </button>
-              <section className="px-4 pb-5 sm:px-6">
-                <div className="space-y-2">
-                  {carriers.map((carrier) => {
-                    const selected = selectedCarrier === carrier.id;
-                    return (
-                      <div key={carrier.id} className={`rounded-lg border transition ${selected ? "border-[#14b8a6] bg-[#ecfdf5]" : "border-gray-200"}`}>
-                        <button type="button" onClick={() => { setSelectedCarrier(carrier.id); setPickupLocation(""); setError(""); }} className="flex w-full items-center justify-between gap-3 p-3 text-left">
-                          <span><span className="block text-sm font-semibold text-gray-900">{carrier.name}</span><span className="mt-0.5 block text-xs text-gray-500">{carrier.note}</span></span>
-                          <span className="text-sm font-bold text-gray-900">{sek(carrier.price)}</span>
-                        </button>
-                        {selected && carrier.id === "instabox" && (
-                          <div className="border-t border-gray-200 p-3">
-                            <label className="block text-xs text-gray-600">Välj paketbox
-                              <select required value={pickupLocation} onChange={(e) => setPickupLocation(e.target.value)} className="mt-2 w-full rounded-lg border border-gray-200 bg-white p-3 text-sm outline-none focus:border-[#14b8a6]">
-                                <option value="">Välj pickup-plats</option><option value="central">Loom &amp; Co Box · Centrum</option><option value="station">Loom &amp; Co Box · Centralstationen</option><option value="mall">Loom &amp; Co Box · Shoppingcenter</option>
-                              </select>
-                            </label>
-                          </div>
-                        )}
-                        {selected && carrier.id === "budbee" && (
-                          <div className="border-t border-gray-200 p-3"><label className="flex items-center gap-3 text-sm text-gray-700"><input type="checkbox" checked={priorityPacking} onChange={(e) => setPriorityPacking(e.target.checked)} className="h-4 w-4 accent-[#14b8a6]" />Prioriterad packning</label></div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                {error && <div role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
-                <button type="button" onClick={openPaymentDetails} disabled={!selectedCarrier} className="mt-4 w-full rounded-lg bg-gray-900 py-3.5 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400">Visa betalningssätt</button>
-              </section>
-            </div>
-          )}
-
           {step >= 3 && (
             <div className="border-t border-gray-200">
-              <button type="button" onClick={() => setStep(2)} className="flex w-full items-center justify-between px-4 py-4 text-left sm:px-6"><span className="font-bold text-gray-900">Steg 3 · Kontaktuppgifter</span><span className="text-lg text-gray-400">⌃</span></button>
+              <button type="button" onClick={() => setStep(1)} className="flex w-full items-center justify-between px-4 py-4 text-left sm:px-6"><span className="font-bold text-gray-900">Steg 2 · Kontaktuppgifter</span><span className="text-lg text-gray-400">⌃</span></button>
               <section className="px-4 pb-6 sm:px-6">
                 <div className="overflow-hidden rounded-lg border border-gray-200 divide-y divide-gray-200">
                   <label className="block p-3"><span className="mb-1 block text-xs text-gray-500">E-postadress</span><input required type="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="namn@exempel.se" autoComplete="email" className="w-full text-sm text-gray-800 outline-none placeholder:text-gray-400" /></label>
                   <label className="block p-3"><span className="mb-1 block text-xs text-gray-500">Mobiltelefonnummer</span><input required type="tel" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="070-123 45 67" autoComplete="tel" className="w-full text-sm text-gray-800 outline-none placeholder:text-gray-400" /></label>
                 </div>
                 <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-[10px] font-bold"><span className="rounded bg-pink-600 px-2 py-1 text-white">walley</span><span className="rounded border border-blue-200 bg-white px-2 py-1 text-blue-600">swish</span><span className="rounded border border-gray-300 bg-white px-2 py-1 text-gray-900"> Pay</span><span className="rounded border border-gray-200 bg-white px-2 py-1 text-blue-900">Trustly</span><span className="rounded border border-gray-200 bg-white px-2 py-1 text-red-600">mastercard</span><span className="rounded border border-gray-200 bg-white px-2 py-1 text-blue-700">VISA</span></div>
-                <button type="button" onClick={() => { if (!form.email || !form.phone) { setError("Fyll i e-postadress och mobiltelefonnummer."); return; } setError(""); setStep(4); }} className="mt-5 w-full rounded-lg bg-[#14b8a6] py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0d9488]">Fortsätt till betalning</button>
+                <button type="button" onClick={() => { if (!form.email || !form.phone) { setError("Fyll i e-postadress och mobiltelefonnummer."); return; } setError(""); setStep(3); }} className="mt-5 w-full rounded-lg bg-[#14b8a6] py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0d9488]">Fortsätt till betalning</button>
                 {error && <div role="alert" className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
                 <Link to="/info/contact" className="mt-4 block text-center text-xs text-gray-500 underline hover:text-gray-700">Dataskyddspolicy</Link>
               </section>
             </div>
           )}
 
-          {step >= 4 && (
+          {step >= 3 && (
             <div className="border-t border-gray-200">
-              <button type="button" onClick={() => setStep(3)} className="flex w-full items-center justify-between px-4 py-4 text-left sm:px-6"><span className="font-bold text-gray-900">Steg 4 · Leveransadress</span><span className="text-lg text-gray-400">⌃</span></button>
+              <button type="button" onClick={() => setStep(2)} className="flex w-full items-center justify-between px-4 py-4 text-left sm:px-6"><span className="font-bold text-gray-900">Steg 3 · Leveransadress</span><span className="text-lg text-gray-400">⌃</span></button>
               <section className="px-4 pb-6 sm:px-6">
                 <div className="space-y-3">
                   <label className="block text-sm font-medium text-gray-800">Namn<input required value={form.name} onChange={(e) => update("name", e.target.value)} autoComplete="name" className="mt-1.5 w-full rounded-lg border border-gray-200 p-3 text-sm outline-none focus:border-[#14b8a6]" placeholder="För- och efternamn" /></label>
