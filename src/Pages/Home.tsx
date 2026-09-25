@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import { useCategories, useProducts } from "../lib/queries";
 import { productImageUrl } from "../lib/images";
 import { ProductCard } from "../components/ProductCard";
@@ -6,14 +7,26 @@ import { ProductCard } from "../components/ProductCard";
 export function Home() {
   const { data: products, isLoading } = useProducts({});
   const { data: categories } = useCategories();
+  const [visibleCount, setVisibleCount] = useState(8);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
   const featured = (products ?? []).filter((p) => p.is_featured);
-  const shown = (featured.length ? featured : products ?? []).slice(0, 8);
-  const heroProduct = shown[0];
+  const productPool = featured.length ? featured : products ?? [];
+  const shown = productPool.slice(0, visibleCount);
+  const hasMore = visibleCount < productPool.length;
+  const heroProduct = productPool[0];
   const heroImage = heroProduct?.images[0];
   const collections = (categories ?? []).filter((c) => c.parent_id === null).slice(0, 4);
 
-  // A collection can contain products through child categories (e.g. Rugs > Persian),
-  // so don't require a product to be directly linked to the parent category.
+  useEffect(() => setVisibleCount(8), [products]);
+  useEffect(() => {
+    if (!hasMore || !loadMoreRef.current) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting) setVisibleCount((count) => Math.min(count + 8, productPool.length));
+    }, { rootMargin: "500px 0px" });
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, productPool.length]);
+
   const collectionSlugs = (rootSlug: string) => {
     const result = new Set<string>([rootSlug]);
     const children = new Map<string, string[]>();
@@ -60,34 +73,9 @@ export function Home() {
           </div>
         </div>
       </section>
-
-      <section className="border-b border-line bg-bg">
-        <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-line px-5 sm:grid-cols-4 sm:px-8 lg:px-10">
-          {[["01","Curated collection","Distinctive rugs, selected one by one."],["02","Honest materials","Clear details on every piece."],["03","Made for living","Pieces chosen for real homes."],["04","Personal service","Here when you need help choosing."]].map(([n,title,text]) => <div key={n} className="border-b border-line px-4 py-7 first:pl-0 sm:border-b-0 sm:px-6 lg:px-8"><span className="text-[10px] font-semibold tracking-[0.2em] text-gold">{n}</span><h2 className="mt-2 text-base">{title}</h2><p className="mt-1 text-xs leading-5 text-mut">{text}</p></div>)}
-        </div>
-      </section>
-
-      {collections.length > 0 && <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:px-10">
-        <div className="mb-9 flex items-end justify-between gap-6"><div><p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">Explore</p><h2 className="mt-2 text-4xl">Shop by collection</h2></div><Link to="/shop" className="hidden text-sm font-semibold underline underline-offset-4 sm:block">View all</Link></div>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {collections.map((c) => {
-            const slugs = collectionSlugs(c.slug);
-            const collectionProduct = (products ?? []).find((p) => p.categorySlugs.some((slug) => slugs.has(slug)) && p.images.length > 0);
-            const image = collectionProduct?.images[0];
-            return <Link key={c.id} to={`/shop?cat=${c.slug}`} className="group relative aspect-[3/4] overflow-hidden bg-soft">
-              {image ? <img src={productImageUrl(image.storage_path)} alt={image.alt_text ?? c.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" loading="lazy" /> : <div className="flex h-full items-center justify-center px-5 text-center text-sm text-mut">Explore {c.name}</div>}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-5 text-white"><p className="text-lg font-medium">{c.name}</p><span className="mt-1 inline-block text-xs opacity-80 transition group-hover:translate-x-1">Shop collection →</span></div>
-            </Link>;
-          })}
-        </div>
-      </section>}
-
-      <section className="mx-auto max-w-7xl px-5 pb-20 sm:px-8 lg:px-10">
-        <div className="mb-9 flex items-end justify-between gap-6"><div><p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">The edit</p><h2 className="mt-2 text-4xl">Selected for you</h2></div><Link to="/shop" className="text-sm font-semibold underline underline-offset-4">Shop all</Link></div>
-        {isLoading ? <div className="grid grid-cols-2 gap-5 md:grid-cols-4">{Array.from({length:4}).map((_,i)=><div key={i} className="aspect-[4/5] animate-pulse bg-soft" />)}</div> : <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4 md:gap-x-6">{shown.map((p)=><ProductCard key={p.id} product={p}/>)}</div>}
-      </section>
-
+      <section className="border-b border-line bg-bg"><div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-line px-5 sm:grid-cols-4 sm:px-8 lg:px-10">{[["01","Curated collection","Distinctive rugs, selected one by one."],["02","Honest materials","Clear details on every piece."],["03","Made for living","Pieces chosen for real homes."],["04","Personal service","Here when you need help choosing."]].map(([n,title,text]) => <div key={n} className="border-b border-line px-4 py-7 first:pl-0 sm:border-b-0 sm:px-6 lg:px-8"><span className="text-[10px] font-semibold tracking-[0.2em] text-gold">{n}</span><h2 className="mt-2 text-base">{title}</h2><p className="mt-1 text-xs leading-5 text-mut">{text}</p></div>)}</div></section>
+      {collections.length > 0 && <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:px-10"><div className="mb-9 flex items-end justify-between gap-6"><div><p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">Explore</p><h2 className="mt-2 text-4xl">Shop by collection</h2></div><Link to="/shop" className="hidden text-sm font-semibold underline underline-offset-4 sm:block">View all</Link></div><div className="grid grid-cols-2 gap-3 md:grid-cols-4">{collections.map((c) => { const slugs = collectionSlugs(c.slug); const collectionProduct = (products ?? []).find((p) => p.categorySlugs.some((slug) => slugs.has(slug)) && p.images.length > 0); const image = collectionProduct?.images[0]; return <Link key={c.id} to={`/shop?cat=${c.slug}`} className="group relative aspect-[3/4] overflow-hidden bg-soft">{image ? <img src={productImageUrl(image.storage_path)} alt={image.alt_text ?? c.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" loading="lazy" /> : <div className="flex h-full items-center justify-center px-5 text-center text-sm text-mut">Explore {c.name}</div>}<div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent" /><div className="absolute bottom-0 left-0 right-0 p-5 text-white"><p className="text-lg font-medium">{c.name}</p><span className="mt-1 inline-block text-xs opacity-80 transition group-hover:translate-x-1">Shop collection →</span></div></Link>; })}</div></section>}
+      <section className="mx-auto max-w-7xl px-5 pb-20 sm:px-8 lg:px-10"><div className="mb-9 flex items-end justify-between gap-6"><div><p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">The edit</p><h2 className="mt-2 text-4xl">Selected for you</h2></div><Link to="/shop" className="text-sm font-semibold underline underline-offset-4">Shop all</Link></div>{isLoading ? <div className="grid grid-cols-2 gap-5 md:grid-cols-4">{Array.from({length:4}).map((_,i)=><div key={i} className="aspect-[4/5] animate-pulse bg-soft" />)}</div> : <><div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4 md:gap-x-6">{shown.map((p)=><ProductCard key={p.id} product={p}/>)}</div>{hasMore && <div ref={loadMoreRef} className="flex min-h-24 items-center justify-center pt-10"><span className="text-xs text-mut">Loading more rugs…</span></div>}</>}</section>
       <section className="bg-fg text-bg"><div className="mx-auto max-w-4xl px-5 py-20 text-center sm:px-8"><p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#c7a66d]">Loom &amp; Co</p><h2 className="mt-4 text-4xl leading-tight sm:text-5xl">The finishing layer your room has been waiting for.</h2><p className="mx-auto mt-5 max-w-2xl text-sm leading-6 text-white/60">Take your time. Find a piece that feels right, then make it part of your home.</p><Link to="/shop" className="mt-8 inline-flex border border-white/30 px-7 py-3.5 text-sm font-semibold transition hover:bg-bg hover:text-fg">Discover the rugs</Link></div></section>
     </div>
   );
