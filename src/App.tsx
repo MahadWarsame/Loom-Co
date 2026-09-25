@@ -10,6 +10,7 @@ import { InfoPage } from "./Pages/Info";
 import { CartPage } from "./Pages/Cart";
 import { CheckoutPage } from "./Pages/Checkout";
 import { PaymentResultPage } from "./Pages/PaymentResult";
+import { AdminPage } from "./Pages/Admin";
 
 function ScrollToTop() {
   const { pathname, search } = useLocation();
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/checkout/cancelled" element={<PaymentResultPage cancelled />} />
           <Route path="/product/:slug" element={<ProductPage />} />
           <Route path="/info/:page" element={<InfoPage />} />
+          <Route path="/admin" element={<AdminPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
