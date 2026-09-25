@@ -12,6 +12,30 @@ export function Home() {
   const heroImage = heroProduct?.images[0];
   const collections = (categories ?? []).filter((c) => c.parent_id === null).slice(0, 4);
 
+  // A collection can contain products through child categories (e.g. Rugs > Persian),
+  // so don't require a product to be directly linked to the parent category.
+  const collectionSlugs = (rootSlug: string) => {
+    const result = new Set<string>([rootSlug]);
+    const children = new Map<string, string[]>();
+    for (const category of categories ?? []) {
+      if (!category.parent_id) continue;
+      const parent = (categories ?? []).find((c) => c.id === category.parent_id);
+      if (!parent) continue;
+      const list = children.get(parent.slug) ?? [];
+      list.push(category.slug);
+      children.set(parent.slug, list);
+    }
+    const walk = (slug: string) => {
+      for (const child of children.get(slug) ?? []) {
+        if (result.has(child)) continue;
+        result.add(child);
+        walk(child);
+      }
+    };
+    walk(rootSlug);
+    return result;
+  };
+
   return (
     <div>
       <section className="relative overflow-hidden border-b border-line bg-[#ebe5da]">
@@ -28,10 +52,11 @@ export function Home() {
           </div>
           <div className="relative lg:pl-8">
             <div className="absolute -inset-6 bg-gold/10 blur-3xl" />
-            <div className="relative aspect-[4/5] overflow-hidden bg-soft shadow-2xl shadow-black/10 sm:aspect-[5/6]">
-              {heroImage ? <img src={productImageUrl(heroImage.storage_path)} alt={heroImage.alt_text ?? heroProduct?.name ?? "Loom & Co rug"} className="h-full w-full object-cover transition duration-700 hover:scale-[1.02]" /> : <div className="flex h-full items-center justify-center text-mut">Discover the collection</div>}
-              {heroProduct && <div className="absolute bottom-4 left-4 right-4 bg-bg/90 p-4 backdrop-blur-md"><p className="text-xs uppercase tracking-[0.18em] text-mut">Featured</p><p className="mt-1 font-display text-lg">{heroProduct.name}</p></div>}
-            </div>
+            <Link to={heroProduct ? `/product/${heroProduct.slug}` : "/shop"} className="group relative block aspect-[4/5] overflow-hidden bg-soft shadow-2xl shadow-black/10 sm:aspect-[5/6]">
+              {heroImage ? <img src={productImageUrl(heroImage.storage_path)} alt={heroImage.alt_text ?? heroProduct?.name ?? "Loom & Co rug"} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]" /> : <div className="flex h-full items-center justify-center text-mut">Discover the collection</div>}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-70 transition group-hover:opacity-90" />
+              {heroProduct && <div className="absolute bottom-4 left-4 right-4 bg-bg/90 p-4 backdrop-blur-md"><div className="flex items-center justify-between gap-4"><div><p className="text-xs uppercase tracking-[0.18em] text-mut">Featured</p><p className="mt-1 font-display text-lg">{heroProduct.name}</p></div><span className="text-sm font-semibold">View →</span></div></div>}
+            </Link>
           </div>
         </div>
       </section>
@@ -46,11 +71,13 @@ export function Home() {
         <div className="mb-9 flex items-end justify-between gap-6"><div><p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">Explore</p><h2 className="mt-2 text-4xl">Shop by collection</h2></div><Link to="/shop" className="hidden text-sm font-semibold underline underline-offset-4 sm:block">View all</Link></div>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {collections.map((c) => {
-            const image = (products ?? []).find((p) => p.categorySlugs.includes(c.slug))?.images[0];
+            const slugs = collectionSlugs(c.slug);
+            const collectionProduct = (products ?? []).find((p) => p.categorySlugs.some((slug) => slugs.has(slug)) && p.images.length > 0);
+            const image = collectionProduct?.images[0];
             return <Link key={c.id} to={`/shop?cat=${c.slug}`} className="group relative aspect-[3/4] overflow-hidden bg-soft">
-              {image && <img src={productImageUrl(image.storage_path)} alt={image.alt_text ?? c.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" loading="lazy" />}
+              {image ? <img src={productImageUrl(image.storage_path)} alt={image.alt_text ?? c.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" loading="lazy" /> : <div className="flex h-full items-center justify-center px-5 text-center text-sm text-mut">Explore {c.name}</div>}
               <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/5 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-5 text-white"><p className="text-lg font-medium">{c.name}</p><span className="mt-1 inline-block text-xs opacity-80">Shop collection →</span></div>
+              <div className="absolute bottom-0 left-0 right-0 p-5 text-white"><p className="text-lg font-medium">{c.name}</p><span className="mt-1 inline-block text-xs opacity-80 transition group-hover:translate-x-1">Shop collection →</span></div>
             </Link>;
           })}
         </div>
