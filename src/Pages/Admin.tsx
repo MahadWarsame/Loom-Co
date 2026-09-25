@@ -4,7 +4,7 @@ import { supabase } from "../lib/supabase";
 type OrderStatus = "pending" | "paid" | "processing" | "shipped" | "completed" | "cancelled";
 type PaymentStatus = "unpaid" | "pending" | "paid" | "failed" | "refunded";
 type OrderItem = { id: number; product_name: string; sku: string; size_label: string | null; unit_price: number; quantity: number; line_total: number };
-type Order = { id: string; order_number: string; created_at: string; customer_email: string; customer_name: string; customer_phone: string | null; shipping_line1: string; shipping_line2: string | null; shipping_postal_code: string; shipping_city: string; shipping_country_code: string; subtotal: number; shipping_amount: number; total: number; status: OrderStatus; payment_status: PaymentStatus; order_items: OrderItem[] };
+type Order = { id: string; order_number: string; created_at: string; customer_email: string; customer_name: string; phone: string | null; shipping_line1: string; shipping_line2: string | null; shipping_postal_code: string; shipping_city: string; shipping_country_code: string; subtotal: number; shipping_amount: number; total: number; status: OrderStatus; payment_status: PaymentStatus; order_items: OrderItem[] };
 
 const statuses: Array<{ value: "all" | OrderStatus; label: string }> = [
   { value: "all", label: "Alla" }, { value: "pending", label: "Pending" }, { value: "paid", label: "Betald" },
@@ -59,7 +59,7 @@ export function AdminPage() {
     setDataError("");
     const { data, error } = await supabase
       .from("orders")
-      .select("id,order_number,created_at,customer_email,customer_name,customer_phone,shipping_line1,shipping_line2,shipping_postal_code,shipping_city,shipping_country_code,subtotal,shipping_amount,total,status,payment_status,order_items(id,product_name,sku,size_label,unit_price,quantity,line_total)")
+      .select("id,order_number,created_at,customer_email,customer_name,phone,shipping_line1,shipping_line2,shipping_postal_code,shipping_city,shipping_country_code,subtotal,shipping_amount,total,status,payment_status,order_items(id,product_name,sku,size_label,unit_price,quantity,line_total)")
       .order("created_at", { ascending: false });
     if (error) { setDataError(error.message); setOrders([]); }
     else setOrders((data ?? []) as Order[]);
@@ -104,7 +104,7 @@ export function AdminPage() {
     return orders.filter((order) => {
       if (statusFilter !== "all" && order.status !== statusFilter) return false;
       if (!term) return true;
-      return [order.order_number, order.customer_name, order.customer_email, order.customer_phone]
+      return [order.order_number, order.customer_name, order.customer_email, order.phone]
         .filter(Boolean).join(" ").toLowerCase().includes(term);
     });
   }, [orders, search, statusFilter]);
@@ -197,7 +197,7 @@ export function AdminPage() {
               <button onClick={() => setSelected(null)} aria-label="Stäng" className="grid h-9 w-9 place-items-center border border-line text-lg">×</button>
             </div>
             <div className="space-y-6 p-5">
-              <section><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-mut">Kund</p><div className="mt-3 space-y-1 text-sm"><p className="font-semibold">{selected.customer_name}</p><p>{selected.customer_email}</p>{selected.customer_phone && <p>{selected.customer_phone}</p>}</div></section>
+              <section><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-mut">Kund</p><div className="mt-3 space-y-1 text-sm"><p className="font-semibold">{selected.customer_name}</p><p>{selected.customer_email}</p>{selected.phone && <p>{selected.phone}</p>}</div></section>
               <section><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-mut">Leveransadress</p><div className="mt-3 text-sm leading-6"><p>{selected.shipping_line1}</p>{selected.shipping_line2 && <p>{selected.shipping_line2}</p>}<p>{selected.shipping_postal_code} {selected.shipping_city}</p><p>{selected.shipping_country_code}</p></div></section>
               <section><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-mut">Artiklar</p><div className="mt-3 divide-y divide-line border-y border-line">{selected.order_items.map((item) => <div key={item.id} className="flex justify-between gap-4 py-3 text-sm"><div><p className="font-medium">{item.product_name}</p><p className="mt-1 text-xs text-mut">{item.sku}{item.size_label ? " · " + item.size_label : ""} · {item.quantity} st</p></div><p className="font-semibold">{sek(Number(item.line_total))}</p></div>)}</div></section>
               <section className="space-y-2 border-t border-line pt-4 text-sm"><div className="flex justify-between"><span className="text-mut">Delsumma</span><span>{sek(Number(selected.subtotal))}</span></div><div className="flex justify-between"><span className="text-mut">Leverans</span><span>{sek(Number(selected.shipping_amount))}</span></div><div className="flex justify-between border-t border-line pt-3 text-base font-semibold"><span>Totalt</span><span>{sek(Number(selected.total))}</span></div></section>
