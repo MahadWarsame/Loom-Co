@@ -4,6 +4,16 @@ import { useCategories } from "../lib/queries";
 import { useCart } from "../context/CartContext";
 import { CartDrawer } from "./CartDrawer";
 
+function WarmrugsMark() {
+  return (
+    <span aria-hidden="true" className="relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-[10px] bg-fg">
+      <span className="absolute h-[2px] w-5 -rotate-[28deg] rounded-full bg-gold" />
+      <span className="absolute h-[2px] w-5 rotate-[28deg] rounded-full bg-[#d7b77b]" />
+      <span className="absolute bottom-[7px] h-[2px] w-4 rounded-full bg-[#f5ead4]" />
+    </span>
+  );
+}
+
 export function Header() {
   const { data: categories } = useCategories();
   const navigate = useNavigate();
@@ -24,13 +34,16 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-line/80 bg-bg/95 backdrop-blur-xl">
       <div className="mx-auto flex h-[72px] max-w-7xl items-center gap-5 px-5 sm:px-8 lg:px-10">
-        <Link to="/" className="font-display text-[25px] tracking-[-0.03em]">Loom <span className="text-gold">&amp;</span> Co</Link>
+        <Link to="/" className="group flex items-center gap-2.5" aria-label="Warmrugs home">
+          <WarmrugsMark />
+          <span className="font-display text-[24px] font-medium tracking-[-0.04em]">warm<span className="text-gold">rugs</span></span>
+        </Link>
         <nav className="ml-auto hidden items-center gap-7 text-[13px] font-medium md:flex" aria-label="Main">
           <Link to="/shop" className="transition hover:text-gold">Shop all</Link>
           {topLevel.map((c) => {
             const children = childrenOf(c.id);
             return (
-              <div key={c.id} className="group relative h-[72px] flex items-center">
+              <div key={c.id} className="group relative flex h-[72px] items-center">
                 <Link to={`/shop?cat=${c.slug}`} className="transition hover:text-gold">{c.name}</Link>
                 {children.length > 0 && (
                   <div className="pointer-events-none absolute left-1/2 top-full z-50 w-56 -translate-x-1/2 -translate-y-2 border border-line bg-bg p-3 opacity-0 shadow-xl transition-all duration-200 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">
