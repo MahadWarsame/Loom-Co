@@ -239,7 +239,7 @@ export function CheckoutPage() {
             </div>
           </section>
 
-          {step >= 3 && (
+          {step >= 2 && (
             <div className="border-t border-gray-200">
               <button type="button" onClick={() => setStep(1)} className="flex w-full items-center justify-between px-4 py-4 text-left sm:px-6"><span className="font-bold text-gray-900">Steg 2 · Kontaktuppgifter</span><span className="text-lg text-gray-400">⌃</span></button>
               <section className="px-4 pb-6 sm:px-6">
