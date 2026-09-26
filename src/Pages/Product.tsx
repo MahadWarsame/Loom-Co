@@ -24,12 +24,10 @@ export function ProductPage() {
   const images = product.images;
   const activeImage = images[imageIndex] ?? images[0];
 
-  // Only show variants that are currently available for purchase.
-  const availableVariants = availability
-    ? product.variants.filter((v) => availability.some((a) => a.variant_id === v.id && a.in_stock))
-    : product.variants;
-
-  const variant = availableVariants[variantIndex] ?? availableVariants[0];
+  // Keep every size from the product catalog visible. Availability only controls
+  // whether a size can be selected/purchased.
+  const variants = product.variants;
+  const variant = variants[variantIndex] ?? variants[0];
   const avail = availability?.find((a) => a.variant_id === variant?.id);
   const stockLabel = !variant
     ? "Out of stock"
@@ -118,25 +116,28 @@ export function ProductPage() {
         <div className={`mt-2 text-xs font-semibold uppercase tracking-[0.12em] ${stockLabel === "In stock" ? "text-[#55735a]" : stockLabel === "Low stock" ? "text-sale" : "text-mut"}`}>{stockLabel}</div>
         <p className="mt-7 border-y border-line py-6 text-sm leading-7 text-mut">{product.short_description ?? product.description}</p>
 
-        {product.variants.length > 1 && (
+        {variants.length > 1 && (
           <div className="mt-7">
-            <div className="mb-3 text-xs font-semibold uppercase tracking-[0.16em]">Available sizes</div>
-            {availableVariants.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {availableVariants.map((v: ProductVariant, i: number) => (
+            <div className="mb-3 text-xs font-semibold uppercase tracking-[0.16em]">Sizes</div>
+            <div className="flex max-h-72 flex-wrap gap-2 overflow-y-auto pr-1">
+              {variants.map((v: ProductVariant, i: number) => {
+                const vAvail = availability?.find((a) => a.variant_id === v.id);
+                const inStock = vAvail?.in_stock === true;
+                return (
                   <button
                     key={v.id}
                     type="button"
-                    onClick={() => setVariantIndex(i)}
-                    className={`border px-4 py-2.5 text-sm transition ${i === variantIndex ? "border-fg bg-fg text-bg" : "border-line hover:border-fg"}`}
+                    onClick={() => inStock && setVariantIndex(i)}
+                    disabled={!inStock}
+                    title={!inStock ? "Out of stock" : undefined}
+                    className={`border px-4 py-2.5 text-sm transition ${i === variantIndex ? "border-fg bg-fg text-bg" : inStock ? "border-line hover:border-fg" : "cursor-not-allowed border-line text-mut line-through opacity-50"}`}
                   >
-                    {v.size_label} cm
+                    {v.size_label}
                   </button>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-mut">This rug is currently out of stock in all sizes.</p>
-            )}
+                );
+              })}
+            </div>
+            <p className="mt-2 text-xs text-mut">Select a size to see its price and availability.</p>
           </div>
         )}
 
