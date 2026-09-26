@@ -27,14 +27,13 @@ export type ShopFilters = {
 
 /**
  * Loads active products plus their variants, images and attributes.
- * Category/color/material filters are applied after the nested data is assembled
- * so category navigation cannot accidentally return the same unfiltered products.
+ * Products are returned only when at least one variant is in stock.
  */
 export function useProducts(filters: ShopFilters) {
   return useQuery({
     queryKey: ["products", filters],
     queryFn: async () => {
-      let query = supabase
+      const query = supabase
         .from("products")
         .select(
           "id,sku,slug,name,short_description,description,brand,is_featured,product_categories(categories(id,slug,parent_id)),product_variants(id,product_id,sku,size_label,regular_price,sale_price),product_images(product_id,position,storage_path,alt_text),product_attributes(key,value)",
@@ -49,7 +48,18 @@ export function useProducts(filters: ShopFilters) {
         .select("id,slug,parent_id");
       if (categoryError) throw categoryError;
 
-      const categoryById = new Map((allCategories ?? []).map((c: any) => [c.id, c]));
+      const productIds = (data ?? []).map((row: any) => row.id);
+      const { data: availability, error: availabilityError } = await supabase.rpc("variant_availability", {
+        p_product_ids: productIds,
+      });
+      if (availabilityError) throw availabilityError;
+
+      const inStockProductIds = new Set(
+        (availability ?? [])
+          .filter((a: any) => a.in_stock === true)
+          .map((a: any) => a.product_id),
+      );
+
       const descendantSlugs = new Set<string>();
       if (filters.categorySlug) {
         const selected = (allCategories ?? []).find((c: any) => c.slug === filters.categorySlug);
@@ -67,27 +77,29 @@ export function useProducts(filters: ShopFilters) {
         }
       }
 
-      const products: ProductWithDetails[] = (data ?? []).map((row: any) => {
-        const attributes: Record<string, string> = {};
-        for (const a of row.product_attributes ?? []) attributes[a.key] = a.value;
+      const products: ProductWithDetails[] = (data ?? [])
+        .filter((row: any) => inStockProductIds.has(row.id))
+        .map((row: any) => {
+          const attributes: Record<string, string> = {};
+          for (const a of row.product_attributes ?? []) attributes[a.key] = a.value;
 
-        return {
-          id: row.id,
-          sku: row.sku,
-          slug: row.slug,
-          name: row.name,
-          short_description: row.short_description,
-          description: row.description,
-          brand: row.brand,
-          is_featured: row.is_featured,
-          variants: (row.product_variants ?? []) as ProductVariant[],
-          images: ((row.product_images ?? []) as ProductImage[]).sort((a, b) => a.position - b.position),
-          attributes,
-          categorySlugs: (row.product_categories ?? [])
-            .map((pc: any) => pc.categories?.slug)
-            .filter(Boolean),
-        };
-      });
+          return {
+            id: row.id,
+            sku: row.sku,
+            slug: row.slug,
+            name: row.name,
+            short_description: row.short_description,
+            description: row.description,
+            brand: row.brand,
+            is_featured: row.is_featured,
+            variants: (row.product_variants ?? []) as ProductVariant[],
+            images: ((row.product_images ?? []) as ProductImage[]).sort((a, b) => a.position - b.position),
+            attributes,
+            categorySlugs: (row.product_categories ?? [])
+              .map((pc: any) => pc.categories?.slug)
+              .filter(Boolean),
+          };
+        });
 
       const search = filters.q?.trim().toLowerCase();
       return products.filter((p) => {
