@@ -4,8 +4,8 @@ import { useCategories } from "../lib/queries";
 import { useCart } from "../context/CartContext";
 import { CartDrawer } from "./CartDrawer";
 
-function LoomMark() {
-  return <span aria-hidden="true" className="relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-[10px] bg-fg"><span className="absolute h-[2px] w-5 -rotate-[28deg] rounded-full bg-gold" /><span className="absolute h-[2px] w-5 rotate-[28deg] rounded-full bg-[#d7b77b]" /><span className="absolute bottom-[7px] h-[2px] w-4 rounded-full bg-[#f5ead4]" /></span>;
+function WarmRugsLogo() {
+  return <img src="/warmrugs-logo.svg" alt="WarmRugs" className="h-11 w-auto max-w-[170px] object-contain" />;
 }
 
 export function Header() {
@@ -29,9 +29,8 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-line/80 bg-bg/95 backdrop-blur-xl">
       <div className="flex h-8 items-center justify-center bg-fg px-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-bg">Curated rugs · Secure checkout · 30-day returns</div>
       <div className="mx-auto flex h-[68px] max-w-7xl items-center gap-5 px-5 sm:px-8 lg:px-10">
-        <Link to="/" className="group flex items-center gap-2.5" aria-label="Loom & Co home">
-          <LoomMark />
-          <span className="font-display text-[23px] font-medium tracking-[-0.04em]">Loom <span className="text-gold">&amp; Co</span></span>
+        <Link to="/" className="group flex items-center" aria-label="WarmRugs home">
+          <WarmRugsLogo />
         </Link>
         <nav className="ml-auto hidden items-center gap-7 text-[13px] font-medium md:flex" aria-label="Main">
           <Link to="/shop" className="transition hover:text-gold">Shop all</Link>
