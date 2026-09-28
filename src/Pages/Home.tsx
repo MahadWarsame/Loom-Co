@@ -63,7 +63,6 @@ export function Home() {
 
   return (
     <div className="bg-bg">
-      {/* Main hero: intentionally follows the WarmRugs prototype — warm, spacious and product-first. */}
       <section className="overflow-hidden bg-cream">
         <div className="mx-auto grid min-h-[610px] max-w-7xl lg:grid-cols-[0.86fr_1.14fr]">
           <div className="relative z-10 flex items-center px-6 py-14 sm:px-10 lg:px-12 lg:py-20">
@@ -88,18 +87,17 @@ export function Home() {
         </div>
       </section>
 
-      {/* Trust strip from the prototype */}
       <section className="border-b border-line bg-white">
         <div className="mx-auto grid max-w-7xl grid-cols-2 sm:grid-cols-4">
           {[
-            ["Free Shipping", "Across Sweden", "truck"],
+            ["Clear Pricing", "Straightforward prices", "price"],
             ["Secure Payment", "Safe & encrypted", "shield"],
             ["Easy Returns", "30-day policy", "return"],
             ["Premium Quality", "Carefully selected", "leaf"],
           ].map(([title, copy, icon], i) => (
             <div key={title} className={"flex items-center gap-3 px-5 py-6 lg:px-8 " + (i > 0 ? "border-l border-line" : "")}>
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-cream text-warm">
-                {icon === "truck" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-5 w-5"><path d="M3 6h11v10H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg>}
+                {icon === "price" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-5 w-5"><path d="M4 7.5 12 4l8 3.5v9L12 20l-8-3.5v-9Z"/><path d="M8 9.5h8M8 13h5"/></svg>}
                 {icon === "shield" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-5 w-5"><path d="M12 3 20 6v6c0 5-3.3 8-8 9-4.7-1-8-4-8-9V6l8-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>}
                 {icon === "return" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-5 w-5"><path d="M4 7h9a6 6 0 1 1-5.3 8.8"/><path d="M4 7V3m0 4 4-2"/></svg>}
                 {icon === "leaf" && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-5 w-5"><path d="M20 4C11 4 5 8 5 14c0 3 2 5 5 5 6 0 10-6 10-15Z"/><path d="M4 20c3-5 7-8 12-10"/></svg>}
@@ -110,7 +108,6 @@ export function Home() {
         </div>
       </section>
 
-      {/* Collection tiles */}
       <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-10">
         <div className="mx-auto mb-9 max-w-2xl text-center">
           <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-warm">Shop by collection</p>
@@ -135,7 +132,6 @@ export function Home() {
         </div>
       </section>
 
-      {/* Product discovery */}
       <section className="bg-soft">
         <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-10">
           <div className="mb-8 flex items-end justify-between gap-6">
