@@ -5,14 +5,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: "#faf8f4",
-        fg: "#26241f",
-        mut: "#8a8378",
+        bg: "#fffdf9",
+        fg: "#3b2b22",
+        mut: "#76685d",
         card: "#ffffff",
-        line: "#e6e1d7",
-        soft: "#f1ede4",
-        sale: "#8a5a3d",
+        line: "#eadfd2",
+        soft: "#f5eee5",
+        sale: "#9b4f3a",
         gold: "#b08d57",
+        warm: "#c56f57",
+        cream: "#f4e6d7",
+        sand: "#d9b58e",
       },
       fontFamily: {
         display: ["Fraunces", "Georgia", "serif"],
