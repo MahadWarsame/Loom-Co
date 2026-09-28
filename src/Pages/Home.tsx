@@ -15,18 +15,38 @@ export function Home() {
   const { data: products, isLoading } = useProducts({});
   const { data: categories } = useCategories();
   const [visibleCount, setVisibleCount] = useState(8);
+  const [heroIndex, setHeroIndex] = useState(0);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const productPool = useMemo(() => {
     const all = products ?? [];
-    const featured = all.filter((p) => p.is_featured);
-    return featured.length >= 4 ? featured : all;
+    const featured = all.filter((p) => p.is_featured && p.images.length > 0);
+    const withImages = all.filter((p) => p.images.length > 0);
+    return (featured.length >= 3 ? featured : withImages).slice(0, 5);
   }, [products]);
 
-  const shown = productPool.slice(0, visibleCount);
-  const hasMore = visibleCount < productPool.length;
-  const heroProduct = productPool[0];
+  const shown = (products ?? []).slice(0, visibleCount);
+  const hasMore = visibleCount < (products ?? []).length;
+  const heroProduct = productPool[heroIndex];
   const heroImage = heroProduct?.images[0];
+
+  const nextHero = () => {
+    if (productPool.length > 1) setHeroIndex((current) => (current + 1) % productPool.length);
+  };
+
+  const previousHero = () => {
+    if (productPool.length > 1) setHeroIndex((current) => (current - 1 + productPool.length) % productPool.length);
+  };
+
+  useEffect(() => {
+    setHeroIndex(0);
+  }, [productPool.length]);
+
+  useEffect(() => {
+    if (productPool.length < 2) return;
+    const timer = window.setInterval(nextHero, 5000);
+    return () => window.clearInterval(timer);
+  }, [productPool.length]);
 
   const collectionSlugs = (rootSlug: string) => {
     const result = new Set<string>([rootSlug]);
@@ -53,13 +73,13 @@ export function Home() {
     if (!hasMore || !loadMoreRef.current) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting) setVisibleCount((count) => Math.min(count + 8, productPool.length));
+        if (entries[0]?.isIntersecting) setVisibleCount((count) => Math.min(count + 8, (products ?? []).length));
       },
       { rootMargin: "500px 0px" },
     );
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
-  }, [hasMore, productPool.length]);
+  }, [hasMore, products]);
 
   return (
     <div className="bg-bg">
@@ -68,21 +88,33 @@ export function Home() {
           <div className="relative z-10 flex items-center px-6 py-14 sm:px-10 lg:px-12 lg:py-20">
             <div className="max-w-xl">
               <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-warm">Timeless rugs, warmer spaces</p>
-              <h1 className="mt-5 text-5xl leading-[0.98] text-fg sm:text-6xl lg:text-[4.65rem]">Beautiful Rugs<br />for Every Home</h1>
-              <p className="mt-6 max-w-lg text-base leading-7 text-mut sm:text-lg">Discover high-quality rugs at exceptional prices. Bring warmth, style and comfort to your space with WarmRugs.</p>
+              <div key={heroProduct?.id ?? "hero-copy"} className="animate-[fadeIn_.45s_ease-out]">
+                <h1 className="mt-5 text-5xl leading-[0.98] text-fg sm:text-6xl lg:text-[4.65rem]">Beautiful Rugs<br />for Every Home</h1>
+                <p className="mt-6 max-w-lg text-base leading-7 text-mut sm:text-lg">Discover high-quality rugs at exceptional prices. Bring warmth, style and comfort to your space with WarmRugs.</p>
+              </div>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link to="/shop" className="inline-flex min-h-14 items-center rounded-full bg-warm px-8 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#b95f49]">Shop Now <span className="ml-3 text-lg">→</span></Link>
                 {heroProduct && <Link to={"/product/" + heroProduct.slug} className="inline-flex min-h-14 items-center rounded-full border border-fg/15 bg-white/50 px-7 text-sm font-semibold text-fg transition hover:bg-white">View featured rug</Link>}
               </div>
-              <div className="mt-9 flex gap-2" aria-label="Hero slides">
-                <span className="h-2 w-7 rounded-full bg-warm" /><span className="h-2 w-2 rounded-full bg-fg/20" /><span className="h-2 w-2 rounded-full bg-fg/20" />
+              <div className="mt-9 flex items-center gap-3" aria-label="Hero slides">
+                <button type="button" onClick={previousHero} aria-label="Previous slide" className="grid h-9 w-9 place-items-center rounded-full border border-fg/15 bg-white/60 text-fg transition hover:bg-white disabled:opacity-40" disabled={productPool.length < 2}>←</button>
+                <div className="flex items-center gap-2">
+                  {productPool.map((product, index) => (
+                    <button key={product.id} type="button" onClick={() => setHeroIndex(index)} aria-label={`Go to slide ${index + 1}`} aria-current={index === heroIndex ? "true" : undefined} className={`h-2 rounded-full transition-all ${index === heroIndex ? "w-8 bg-warm" : "w-2 bg-fg/20 hover:bg-fg/40"}`} />
+                  ))}
+                </div>
+                <button type="button" onClick={nextHero} aria-label="Next slide" className="grid h-9 w-9 place-items-center rounded-full border border-fg/15 bg-white/60 text-fg transition hover:bg-white disabled:opacity-40" disabled={productPool.length < 2}>→</button>
               </div>
             </div>
           </div>
           <div className="relative min-h-[390px] overflow-hidden bg-sand lg:min-h-0">
-            {heroImage ? <img src={productImageUrl(heroImage.storage_path)} alt={heroImage.alt_text ?? heroProduct?.name ?? "WarmRugs rug"} className="h-full w-full object-cover object-center transition duration-700 hover:scale-[1.015]" /> : <div className="h-full w-full bg-gradient-to-br from-[#d6b18c] via-[#ead8c4] to-[#b96850]" />}
+            {heroImage ? (
+              <img key={heroImage.storage_path} src={productImageUrl(heroImage.storage_path)} alt={heroImage.alt_text ?? heroProduct?.name ?? "WarmRugs rug"} className="h-full w-full object-cover object-center animate-[fadeIn_.6s_ease-out]" />
+            ) : (
+              <div className="h-full w-full bg-gradient-to-br from-[#d6b18c] via-[#ead8c4] to-[#b96850]" />
+            )}
             <div className="absolute inset-0 bg-gradient-to-r from-cream/30 via-transparent to-black/10" />
-            {heroProduct && <div className="absolute bottom-5 right-5 rounded-full bg-white/90 px-4 py-2 text-xs font-semibold text-fg shadow-lg">Featured rug · {heroProduct.name}</div>}
+            {heroProduct && <div key={heroProduct.id} className="absolute bottom-5 right-5 max-w-[70%] rounded-full bg-white/90 px-4 py-2 text-xs font-semibold text-fg shadow-lg animate-[fadeIn_.45s_ease-out]">Featured rug · {heroProduct.name}</div>}
           </div>
         </div>
       </section>
