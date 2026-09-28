@@ -37,11 +37,11 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-line/80 bg-bg/95 backdrop-blur-xl">
       <div className="flex min-h-10 items-center justify-center gap-4 bg-warm px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-white sm:gap-8 sm:text-[11px]">
-        <span>Free shipping across Sweden</span>
-        <span className="hidden h-4 w-px bg-white/40 sm:block" />
-        <span className="hidden sm:inline">Secure payments</span>
+        <span>Secure payments</span>
         <span className="hidden h-4 w-px bg-white/40 sm:block" />
         <span>Premium quality rugs</span>
+        <span className="hidden h-4 w-px bg-white/40 sm:block" />
+        <span className="hidden sm:inline">Clear pricing</span>
       </div>
 
       <div className="mx-auto flex min-h-[82px] max-w-7xl items-center gap-5 px-5 sm:px-8 lg:px-10">
