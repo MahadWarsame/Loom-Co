@@ -94,7 +94,7 @@ export function Header() {
       {searchOpen && (
         <div className="border-t border-line/60 px-5 py-3 sm:px-8 lg:px-10">
           <form onSubmit={submitSearch} className="mx-auto flex max-w-3xl gap-2">
-            <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search rugs, brands, colours or materials…" className="h-11 min-w-0 flex-1 border border-line bg-bg px-3 text-sm outline-none focus:border-warm" />
+            <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search rugs, supplier article numbers, brands, colours or materials…" className="h-11 min-w-0 flex-1 border border-line bg-bg px-3 text-sm outline-none focus:border-warm" />
             <button className="h-11 bg-warm px-5 text-sm font-semibold text-white">Search</button>
           </form>
         </div>
