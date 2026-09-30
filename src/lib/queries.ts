@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "./supabase";
+import supplierArticleNumbers from "../data/supplierArticleNumbers.json";
 import type { Availability, Category, ProductImage, ProductVariant, ProductWithDetails } from "../types";
 
 export function useCategories() {
@@ -104,6 +105,10 @@ export function useProducts(filters: ShopFilters) {
       const search = filters.q?.trim().toLowerCase();
       return products.filter((p) => {
         if (search) {
+          const supplierNumbers = p.variants
+            .map((variant) => supplierArticleNumbers[String(variant.sku) as keyof typeof supplierArticleNumbers])
+            .filter(Boolean);
+
           const haystack = [
             p.name,
             p.sku,
@@ -111,6 +116,7 @@ export function useProducts(filters: ShopFilters) {
             p.short_description,
             p.description,
             ...p.variants.map((variant) => variant.sku),
+            ...supplierNumbers,
             ...Object.values(p.attributes),
             ...p.categorySlugs,
           ]
