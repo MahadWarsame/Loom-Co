@@ -71,7 +71,7 @@ export function Shop() {
           <input
             name="q"
             defaultValue={q}
-            placeholder="Search rugs, brands, colours or materials…"
+            placeholder="Search rugs, supplier article numbers, brands, colours or materials…"
             className="h-11 min-w-0 flex-1 border border-line bg-bg px-3 text-sm outline-none focus:border-fg"
           />
           <button type="submit" className="h-11 bg-fg px-5 text-sm text-bg">
