@@ -40,7 +40,7 @@ export function useProducts(filters: ShopFilters) {
         )
         .eq("status", "active");
 
-      const { data, error } = await query.limit(1000);
+      const { data, error } = await query.limit(5000);
       if (error) throw error;
 
       const { data: allCategories, error: categoryError } = await supabase
@@ -104,7 +104,16 @@ export function useProducts(filters: ShopFilters) {
       const search = filters.q?.trim().toLowerCase();
       return products.filter((p) => {
         if (search) {
-          const haystack = [p.name, p.sku, p.brand, p.short_description, p.description, ...Object.values(p.attributes), ...p.categorySlugs]
+          const haystack = [
+            p.name,
+            p.sku,
+            p.brand,
+            p.short_description,
+            p.description,
+            ...p.variants.map((variant) => variant.sku),
+            ...Object.values(p.attributes),
+            ...p.categorySlugs,
+          ]
             .filter(Boolean)
             .join(" ")
             .toLowerCase();
