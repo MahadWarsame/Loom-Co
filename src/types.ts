@@ -12,7 +12,6 @@ export type ProductVariant = {
   sku: string;
   size_label: string | null;
   regular_price: number;
-  sale_price: number | null;
 };
 
 export type Availability = {
