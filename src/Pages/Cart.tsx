@@ -73,7 +73,6 @@ export function CartPage() {
                   <p className="mt-2 text-xs text-mut">{item.sizeLabel ? `${item.sizeLabel} cm` : "Selected size"}</p>
                   <div className="mt-3 text-sm">
                     <b>{sek(item.price)}</b>
-                    {item.price < item.regularPrice && <s className="ml-2 text-xs text-mut">{sek(item.regularPrice)}</s>}
                   </div>
                   <div className="mt-4 flex items-center gap-3">
                     <label className="flex items-center border border-line">
