@@ -32,7 +32,9 @@ function readCart(): CartItem[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    // Normalize carts created before sale prices were removed.
+    return parsed.map((item) => ({ ...item, price: Number(item.regularPrice ?? item.price ?? 0) }));
   } catch {
     return [];
   }
@@ -89,7 +91,7 @@ export function cartItemFromProduct(
     slug: product.slug,
     name: product.name,
     sizeLabel: variant.size_label,
-    price: variant.sale_price ?? variant.regular_price,
+    price: variant.regular_price,
     regularPrice: variant.regular_price,
     imagePath,
   };
