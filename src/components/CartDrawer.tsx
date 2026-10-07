@@ -59,7 +59,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                     <div className="min-w-0 flex-1">
                       <Link to={`/product/${item.slug}`} onClick={onClose} className="block font-display text-lg leading-tight hover:text-gold">{item.name}</Link>
                       <p className="mt-1 text-xs text-mut">{item.sizeLabel ? `${item.sizeLabel} cm` : "Selected size"}</p>
-                      <div className="mt-2 flex items-baseline gap-2 text-sm"><b>{sek(item.price)}</b>{item.price < item.regularPrice && <s className="text-[11px] text-mut">{sek(item.regularPrice)}</s>}</div>
+                      <div className="mt-2 flex items-baseline gap-2 text-sm"><b>{sek(item.price)}</b></div>
                       <div className="mt-3 flex items-center justify-between gap-3">
                         <label className="flex items-center border border-line">
                           <span className="sr-only">Quantity for {item.name}</span>
