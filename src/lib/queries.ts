@@ -76,7 +76,7 @@ export function useProducts(filters: ShopFilters) {
       const query = supabase
         .from("products")
         .select(
-          "id,sku,slug,name,short_description,description,brand,is_featured,product_categories(categories(id,slug,parent_id)),product_variants(id,product_id,sku,size_label,regular_price,sale_price),product_images(product_id,position,storage_path,alt_text),product_attributes(key,value)",
+          "id,sku,slug,name,short_description,description,brand,is_featured,product_categories(categories(id,slug,parent_id)),product_variants(id,product_id,sku,size_label,regular_price),product_images(product_id,position,storage_path,alt_text),product_attributes(key,value)",
         )
         .eq("status", "active");
 
@@ -164,7 +164,7 @@ export function useProduct(slug: string | undefined) {
       const { data, error } = await supabase
         .from("products")
         .select(
-          "id,sku,slug,name,short_description,description,brand,is_featured,product_variants(id,product_id,sku,size_label,regular_price,sale_price,position),product_images(product_id,position,storage_path,alt_text),product_attributes(key,value)",
+          "id,sku,slug,name,short_description,description,brand,is_featured,product_variants(id,product_id,sku,size_label,regular_price,position),product_images(product_id,position,storage_path,alt_text),product_attributes(key,value)",
         )
         .eq("slug", slug)
         .eq("status", "active")
