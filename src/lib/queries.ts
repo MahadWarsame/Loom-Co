@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "./supabase";
 import type { Availability, Category, ProductImage, ProductVariant, ProductWithDetails } from "../types";
+import { getSupplierArticleNumbers, supplierArticleNumberFor } from "./supplierArticleNumbers";
 
 export function useCategories() {
   return useQuery({
@@ -49,14 +50,15 @@ const extractModelCodes = (value: unknown) =>
  * Search is normalized so spaces, hyphens, underscores and case do not
  * prevent an otherwise valid identifier from matching.
  */
-function buildSearchIdentifiers(product: ProductWithDetails) {
+function buildSearchIdentifiers(product: ProductWithDetails, supplierNumbers: Record<string, string>) {
   const identifiers = [
     product.sku,
     product.name,
     product.brand,
     product.short_description,
     product.description,
-    ...product.variants.map((variant) => variant.sku),
+    ...product.variants.flatMap((variant) => [variant.sku, supplierArticleNumberFor(supplierNumbers, product.sku, variant.sku)]),
+    supplierArticleNumberFor(supplierNumbers, product.sku),
     ...extractModelCodes(product.name),
     ...Object.values(product.attributes),
     ...product.categorySlugs,
@@ -141,10 +143,11 @@ export function useProducts(filters: ShopFilters) {
           };
         });
 
+      const supplierNumbers = await getSupplierArticleNumbers();
       const search = normalizeSearch(filters.q);
       return products.filter((p) => {
         if (search) {
-          const identifiers = buildSearchIdentifiers(p);
+          const identifiers = buildSearchIdentifiers(p, supplierNumbers);
           if (!identifiers.some((identifier) => identifier.includes(search))) return false;
         }
         if (filters.categorySlug && !p.categorySlugs.some((slug) => descendantSlugs.has(slug))) return false;
