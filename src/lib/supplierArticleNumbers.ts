@@ -25,5 +25,33 @@ export function supplierArticleNumberFor(
   productSku: string | null | undefined,
   variantSku?: string | null,
 ) {
-  return mapping[String(variantSku ?? "").trim()] ?? mapping[String(productSku ?? "").trim()] ?? null;
+  const variantKey = String(variantSku ?? "").trim();
+  const productKey = String(productSku ?? "").trim();
+
+  // First use the exact SKU keys (fast path).
+  const exact = mapping[variantKey] ?? mapping[productKey];
+  if (exact) return exact;
+
+  // Supplier files can contain formatting differences such as spaces,
+  // hyphens or underscores. Match those representations as well.
+  const normalizedVariant = normalizeIdentifier(variantKey);
+  const normalizedProduct = normalizeIdentifier(productKey);
+
+  for (const [key, value] of Object.entries(mapping)) {
+    const normalizedKey = normalizeIdentifier(key);
+    if (normalizedKey && (normalizedKey === normalizedVariant || normalizedKey === normalizedProduct)) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
+function normalizeIdentifier(value: unknown) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\\u0300-\\u036f]/g, "")
+    .replace(/[\\s_-]+/g, "");
 }
