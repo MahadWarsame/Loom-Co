@@ -5,9 +5,10 @@ import { productImageUrl } from "../lib/images";
 function sek(n: number) { return Math.round(n).toLocaleString("sv-SE") + " kr"; }
 
 export function ProductCard({ product }: { product: ProductWithDetails }) {
-  const cheapest = product.variants.reduce<(typeof product.variants)[number] | null>((best, v) =>
+  const cheapest = product.variants.reduce((best, v) =>
     v.regular_price < (best?.regular_price ?? Infinity) ? v : best,
-  }, null);
+    product.variants[0] ?? null,
+  );
   const image = product.images[0];
 
   return <article className="group min-w-0">
