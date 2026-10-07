@@ -24,6 +24,7 @@ export function ProductPage() {
     setVariantIndex(0);
     setImageIndex(0);
     setAdded(false);
+    getSupplierArticleNumbers().then(setSupplierNumbers);
   }, [slug]);
 
   const variants = product?.variants ?? [];
