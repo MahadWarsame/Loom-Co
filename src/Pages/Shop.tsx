@@ -13,7 +13,7 @@ export function Shop() {
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const { data: categories } = useCategories();
-  const { data: products, isLoading } = useProducts({ categorySlug, q, color, material });
+  const { data: products, isLoading, isError, error } = useProducts({ categorySlug, q, color, material });
 
   const colors = useMemo(
     () => [...new Set((products ?? []).map((p) => p.attributes.Color).filter(Boolean))].sort(),
@@ -171,7 +171,7 @@ export function Shop() {
                 <div key={index} className="aspect-[4/5] animate-pulse bg-soft" />
               ))}
             </div>
-          ) : products?.length ? (
+          ) : isError ? (\n            <div className="border border-line px-6 py-20 text-center">\n              <h2 className="text-2xl">We could not load the rugs</h2>\n              <p className="mt-2 text-sm text-mut">{error instanceof Error ? error.message : "Please refresh the page and try again."}</p>\n            </div>\n          ) : products?.length ? (
             <>
               <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 md:gap-x-6">
                 {visibleProducts.map((product) => (
