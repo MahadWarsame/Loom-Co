@@ -33,7 +33,8 @@ export function ProductPage() {
   const images = product?.images ?? [];
   const activeImage = images[imageIndex] ?? images[0];
 
-  const supplierArticleNumber = supplierArticleNumberFor(supplierNumbers, product?.sku, variant?.sku);\n  const stockLabel = !variant ? "Out of stock" : !avail || !avail.in_stock ? "Out of stock" : avail.low_stock ? "Low stock" : "In stock";
+  const supplierArticleNumber = supplierArticleNumberFor(supplierNumbers, product?.sku, variant?.sku);
+  const stockLabel = !variant ? "Out of stock" : !avail || !avail.in_stock ? "Out of stock" : avail.low_stock ? "Low stock" : "In stock";
 
   if (isLoading) {
     return <div className="mx-auto max-w-7xl px-5 py-20"><div className="grid gap-10 lg:grid-cols-2"><div className="aspect-[4/5] animate-pulse bg-soft" /><div className="space-y-4"><div className="h-8 w-3/4 animate-pulse bg-soft" /><div className="h-5 w-1/3 animate-pulse bg-soft" /><div className="h-28 animate-pulse bg-soft" /></div></div></div>;
@@ -76,7 +77,8 @@ export function ProductPage() {
 
         <div className="lg:sticky lg:top-28 lg:self-start lg:pt-3">
           <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">Loom &amp; Co · Curated piece</p>
-          <h1 className="mt-3 text-4xl leading-tight sm:text-5xl">{product.name}</h1>\n          {supplierArticleNumber && <p className="mt-3 text-sm text-mut"><span className="font-medium text-fg">Leverantörens artikelnummer:</span> {supplierArticleNumber}</p>}
+          <h1 className="mt-3 text-4xl leading-tight sm:text-5xl">{product.name}</h1>
+          {supplierArticleNumber && <p className="mt-3 text-sm text-mut"><span className="font-medium text-fg">Leverantörens artikelnummer:</span> {supplierArticleNumber}</p>}
 
           <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-2">
             {variant && <b className="text-2xl">{sek(variant.regular_price)}</b>}
@@ -102,7 +104,8 @@ export function ProductPage() {
                   const inStock = vAvail?.in_stock === true;
                   return <button key={v.id} type="button" onClick={() => inStock && setVariantIndex(i)} disabled={!inStock} title={!inStock ? "Out of stock" : undefined} className={"relative min-h-14 border px-3 py-2 text-left text-sm transition " + (i === variantIndex ? "border-fg bg-fg text-bg" : inStock ? "border-line hover:border-fg" : "cursor-not-allowed border-line text-mut line-through opacity-45")}>
                     <span className="block font-medium">{v.size_label}</span>
-                    <span className={"mt-0.5 block text-[11px] " + (i === variantIndex ? "text-white/70" : "text-mut")}>{sek(v.regular_price)}</span>\n                    {supplierArticleNumberFor(supplierNumbers, product.sku, v.sku) && <span className={"mt-0.5 block text-[10px] " + (i === variantIndex ? "text-white/60" : "text-mut")}>Lev. art.nr: {supplierArticleNumberFor(supplierNumbers, product.sku, v.sku)}</span>}
+                    <span className={"mt-0.5 block text-[11px] " + (i === variantIndex ? "text-white/70" : "text-mut")}>{sek(v.regular_price)}</span>
+                    {supplierArticleNumberFor(supplierNumbers, product.sku, v.sku) && <span className={"mt-0.5 block text-[10px] " + (i === variantIndex ? "text-white/60" : "text-mut")}>Lev. art.nr: {supplierArticleNumberFor(supplierNumbers, product.sku, v.sku)}</span>}
                   </button>;
                 })}
               </div>
