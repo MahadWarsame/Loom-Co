@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "./supabase";
-import supplierArticleNumbers from "../data/supplierArticleNumbers.json";
 import type { Availability, Category, ProductImage, ProductVariant, ProductWithDetails } from "../types";
 
 export function useCategories() {
@@ -26,10 +25,50 @@ export type ShopFilters = {
   inStockOnly?: boolean;
 };
 
+const normalizeSearch = (value: unknown) =>
+  String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\s_-]+/g, "");
+
+const extractModelCodes = (value: unknown) =>
+  String(value ?? "").match(/\b\d{4}[a-z]?\b/gi) ?? [];
+
 /**
- * Loads active products plus their variants, images and attributes.
- * Products are returned only when at least one variant is in stock.
+ * Builds one search index per product.
+ *
+ * A product can be found by:
+ * - product SKU
+ * - every variant/article number
+ * - verified supplier/article identifiers already stored in the product data
+ * - four-digit/alphanumeric model codes present in the product name
+ * - brand, descriptions, attributes and categories
+ *
+ * Search is normalized so spaces, hyphens, underscores and case do not
+ * prevent an otherwise valid identifier from matching.
  */
+function buildSearchIdentifiers(product: ProductWithDetails) {
+  const identifiers = [
+    product.sku,
+    product.name,
+    product.brand,
+    product.short_description,
+    product.description,
+    ...product.variants.map((variant) => variant.sku),
+    ...extractModelCodes(product.name),
+    ...Object.values(product.attributes),
+    ...product.categorySlugs,
+  ];
+
+  return identifiers
+    .filter(Boolean)
+    .map(normalizeSearch)
+    .filter(Boolean);
+}
+
+/** Loads active products plus their variants, images and attributes. */
 export function useProducts(filters: ShopFilters) {
   return useQuery({
     queryKey: ["products", filters],
@@ -102,28 +141,11 @@ export function useProducts(filters: ShopFilters) {
           };
         });
 
-      const search = filters.q?.trim().toLowerCase();
+      const search = normalizeSearch(filters.q);
       return products.filter((p) => {
         if (search) {
-          const supplierNumbers = p.variants
-            .map((variant) => supplierArticleNumbers[String(variant.sku) as keyof typeof supplierArticleNumbers])
-            .filter(Boolean);
-
-          const haystack = [
-            p.name,
-            p.sku,
-            p.brand,
-            p.short_description,
-            p.description,
-            ...p.variants.map((variant) => variant.sku),
-            ...supplierNumbers,
-            ...Object.values(p.attributes),
-            ...p.categorySlugs,
-          ]
-            .filter(Boolean)
-            .join(" ")
-            .toLowerCase();
-          if (!haystack.includes(search)) return false;
+          const identifiers = buildSearchIdentifiers(p);
+          if (!identifiers.some((identifier) => identifier.includes(search))) return false;
         }
         if (filters.categorySlug && !p.categorySlugs.some((slug) => descendantSlugs.has(slug))) return false;
         if (filters.color && p.attributes.Color !== filters.color) return false;
