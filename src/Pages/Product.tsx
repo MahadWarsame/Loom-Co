@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAvailability, useProduct } from "../lib/queries";
 import { productImageUrl } from "../lib/images";
@@ -29,11 +29,6 @@ export function ProductPage() {
   const avail = availability?.find((a) => a.variant_id === variant?.id);
   const images = product?.images ?? [];
   const activeImage = images[imageIndex] ?? images[0];
-
-  const discount = useMemo(() => {
-    if (!variant?.sale_price || variant.sale_price >= variant.regular_price) return 0;
-    return Math.round((1 - variant.sale_price / variant.regular_price) * 100);
-  }, [variant]);
 
   const stockLabel = !variant ? "Out of stock" : !avail || !avail.in_stock ? "Out of stock" : avail.low_stock ? "Low stock" : "In stock";
 
@@ -81,8 +76,7 @@ export function ProductPage() {
           <h1 className="mt-3 text-4xl leading-tight sm:text-5xl">{product.name}</h1>
 
           <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-2">
-            {variant && (variant.sale_price ? <><b className="text-2xl text-sale">{sek(variant.sale_price)}</b><s className="text-sm text-mut">{sek(variant.regular_price)}</s></> : <b className="text-2xl">{sek(variant.regular_price)}</b>)}
-            {discount > 0 && <span className="border border-sale/20 bg-sale/5 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-sale">-{discount}%</span>}
+            {variant && <b className="text-2xl">{sek(variant.regular_price)}</b>}
           </div>
 
           <div className={"mt-2 text-xs font-semibold uppercase tracking-[0.12em] " + (stockLabel === "In stock" ? "text-[#55735a]" : stockLabel === "Low stock" ? "text-sale" : "text-mut")}>
@@ -103,10 +97,9 @@ export function ProductPage() {
                 {variants.map((v: ProductVariant, i: number) => {
                   const vAvail = availability?.find((a) => a.variant_id === v.id);
                   const inStock = vAvail?.in_stock === true;
-                  const vDiscount = v.sale_price && v.sale_price < v.regular_price ? Math.round((1 - v.sale_price / v.regular_price) * 100) : 0;
                   return <button key={v.id} type="button" onClick={() => inStock && setVariantIndex(i)} disabled={!inStock} title={!inStock ? "Out of stock" : undefined} className={"relative min-h-14 border px-3 py-2 text-left text-sm transition " + (i === variantIndex ? "border-fg bg-fg text-bg" : inStock ? "border-line hover:border-fg" : "cursor-not-allowed border-line text-mut line-through opacity-45")}>
                     <span className="block font-medium">{v.size_label}</span>
-                    <span className={"mt-0.5 block text-[11px] " + (i === variantIndex ? "text-white/70" : "text-mut")}>{v.sale_price ? sek(v.sale_price) : sek(v.regular_price)}{vDiscount > 0 ? " · -" + vDiscount + "%" : ""}</span>
+                    <span className={"mt-0.5 block text-[11px] " + (i === variantIndex ? "text-white/70" : "text-mut")}>{sek(v.regular_price)}</span>
                   </button>;
                 })}
               </div>
@@ -144,7 +137,7 @@ export function ProductPage() {
       {variant && avail?.in_stock && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/95 px-4 py-3 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur-xl sm:hidden">
           <div className="mx-auto flex max-w-7xl items-center gap-3">
-            <div className="min-w-0 flex-1"><p className="truncate text-xs font-medium">{product.name}</p><p className="text-sm font-semibold">{variant.sale_price ? sek(variant.sale_price) : sek(variant.regular_price)}{variant.size_label ? " · " + variant.size_label : ""}</p></div>
+            <div className="min-w-0 flex-1"><p className="truncate text-xs font-medium">{product.name}</p><p className="text-sm font-semibold">{sek(variant.regular_price)}{variant.size_label ? " · " + variant.size_label : ""}</p></div>
             <button type="button" onClick={addToCart} className="min-h-12 shrink-0 bg-fg px-6 text-sm font-semibold text-bg">{added ? "Added ✓" : "Add to cart"}</button>
           </div>
         </div>
