@@ -37,19 +37,6 @@ const normalizeSearch = (value: unknown) =>
 const extractModelCodes = (value: unknown) =>
   String(value ?? "").match(/\b\d{4}[a-z]?\b/gi) ?? [];
 
-/**
- * Builds one search index per product.
- *
- * A product can be found by:
- * - product SKU
- * - every variant/article number
- * - verified supplier/article identifiers already stored in the product data
- * - four-digit/alphanumeric model codes present in the product name
- * - brand, descriptions, attributes and categories
- *
- * Search is normalized so spaces, hyphens, underscores and case do not
- * prevent an otherwise valid identifier from matching.
- */
 function buildSearchIdentifiers(product: ProductWithDetails, supplierNumbers: Record<string, string>) {
   const identifiers = [
     product.sku,
@@ -57,32 +44,38 @@ function buildSearchIdentifiers(product: ProductWithDetails, supplierNumbers: Re
     product.brand,
     product.short_description,
     product.description,
-    ...product.variants.flatMap((variant) => [variant.sku, supplierArticleNumberFor(supplierNumbers, product.sku, variant.sku)]),
+    ...product.variants.flatMap((variant) => [
+      variant.sku,
+      supplierArticleNumberFor(supplierNumbers, product.sku, variant.sku),
+    ]),
     supplierArticleNumberFor(supplierNumbers, product.sku),
     ...extractModelCodes(product.name),
     ...Object.values(product.attributes),
     ...product.categorySlugs,
   ];
 
-  return identifiers
-    .filter(Boolean)
-    .map(normalizeSearch)
-    .filter(Boolean);
+  return identifiers.filter(Boolean).map(normalizeSearch).filter(Boolean);
 }
 
-/** Loads active products plus their variants, images and attributes. */
+/**
+ * Loads the active catalog.
+ *
+ * Availability and supplier-number indexing are deliberately non-fatal:
+ * a failure in either optional service must never make the entire rug
+ * catalogue disappear.
+ */
 export function useProducts(filters: ShopFilters) {
   return useQuery({
     queryKey: ["products", filters],
     queryFn: async () => {
-      const query = supabase
+      const { data, error } = await supabase
         .from("products")
         .select(
           "id,sku,slug,name,short_description,description,brand,is_featured,product_categories(categories(id,slug,parent_id)),product_variants(id,product_id,sku,size_label,regular_price),product_images(product_id,position,storage_path,alt_text),product_attributes(key,value)",
         )
-        .eq("status", "active");
+        .eq("status", "active")
+        .limit(5000);
 
-      const { data, error } = await query.limit(5000);
       if (error) throw error;
 
       const { data: allCategories, error: categoryError } = await supabase
@@ -91,11 +84,22 @@ export function useProducts(filters: ShopFilters) {
       if (categoryError) throw categoryError;
 
       const productIds = (data ?? []).map((row: any) => row.id);
-      const { data: availability, error: availabilityError } = await supabase.rpc("variant_availability", {
-        p_product_ids: productIds,
-      });
-      if (availabilityError) throw availabilityError;
 
+      let availability: any[] | null = null;
+      try {
+        const result = await supabase.rpc("variant_availability", {
+          p_product_ids: productIds,
+        });
+        if (result.error) {
+          console.error("Catalog availability check failed; showing active products:", result.error);
+        } else {
+          availability = result.data ?? [];
+        }
+      } catch (error) {
+        console.error("Catalog availability check failed; showing active products:", error);
+      }
+
+      const availabilitySucceeded = availability !== null;
       const inStockProductIds = new Set(
         (availability ?? [])
           .filter((a: any) => a.in_stock === true)
@@ -120,7 +124,7 @@ export function useProducts(filters: ShopFilters) {
       }
 
       const products: ProductWithDetails[] = (data ?? [])
-        .filter((row: any) => inStockProductIds.has(row.id))
+        .filter((row: any) => !availabilitySucceeded || inStockProductIds.has(row.id))
         .map((row: any) => {
           const attributes: Record<string, string> = {};
           for (const a of row.product_attributes ?? []) attributes[a.key] = a.value;
@@ -143,7 +147,13 @@ export function useProducts(filters: ShopFilters) {
           };
         });
 
-      const supplierNumbers = await getSupplierArticleNumbers();
+      let supplierNumbers: Record<string, string> = {};
+      try {
+        supplierNumbers = await getSupplierArticleNumbers();
+      } catch (error) {
+        console.error("Supplier article-number index failed; continuing without it:", error);
+      }
+
       const search = normalizeSearch(filters.q);
       return products.filter((p) => {
         if (search) {
@@ -195,7 +205,6 @@ export function useProduct(slug: string | undefined) {
   });
 }
 
-/** In-stock / low-stock flags for a set of products. Exact quantities are staff-only (see RLS). */
 export function useAvailability(productIds: string[]) {
   return useQuery({
     enabled: productIds.length > 0,
