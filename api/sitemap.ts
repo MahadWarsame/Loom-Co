@@ -1,7 +1,8 @@
 export default async function handler(_req: any, res: any) {
   const origin = "https://loom-co.vercel.app";
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
+  const env = (globalThis as any).process?.env ?? {};
+  const supabaseUrl = env.VITE_SUPABASE_URL;
+  const anonKey = env.VITE_SUPABASE_ANON_KEY;
   const urls = new Set<string>([origin + "/", origin + "/shop"]);
 
   if (supabaseUrl && anonKey) {
