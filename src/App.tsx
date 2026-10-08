@@ -15,7 +15,9 @@ import { AdminPage } from "./Pages/Admin";
 function ScrollToTop() {
   const { pathname, search } = useLocation();
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    // "instant" is not a standard ScrollTo behavior value and can throw
+    // in some browsers, which can crash the React root after first paint.
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [pathname, search]);
   return null;
 }
