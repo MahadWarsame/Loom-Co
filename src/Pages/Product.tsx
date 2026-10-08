@@ -78,7 +78,7 @@ export function ProductPage() {
         <div className="lg:sticky lg:top-28 lg:self-start lg:pt-3">
           <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-gold">Loom &amp; Co · Curated piece</p>
           <h1 className="mt-3 text-4xl leading-tight sm:text-5xl">{product.name}</h1>
-          {supplierArticleNumber && <p className="mt-3 text-sm text-mut"><span className="font-medium text-fg">Leverantörens artikelnummer:</span> {supplierArticleNumber}</p>}
+          <div className="mt-3 space-y-1 text-sm text-mut"><p><span className="font-medium text-fg">Artikelnummer:</span> {product.sku}</p>{supplierArticleNumber && <p><span className="font-medium text-fg">Leverantörens artikelnummer:</span> {supplierArticleNumber}</p>}</div>
 
           <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-2">
             {variant && <b className="text-2xl">{sek(variant.regular_price)}</b>}
