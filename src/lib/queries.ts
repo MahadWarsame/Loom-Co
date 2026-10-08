@@ -124,7 +124,7 @@ export function useProducts(filters: ShopFilters) {
       }
 
       const products: ProductWithDetails[] = (data ?? [])
-        .filter((row: any) => !availabilitySucceeded || inStockProductIds.has(row.id))
+        .filter((row: any) => !filters.inStockOnly || !availabilitySucceeded || inStockProductIds.has(row.id))
         .map((row: any) => {
           const attributes: Record<string, string> = {};
           for (const a of row.product_attributes ?? []) attributes[a.key] = a.value;
