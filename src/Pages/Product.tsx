@@ -36,6 +36,88 @@ export function ProductPage() {
   const supplierArticleNumber = supplierArticleNumberFor(supplierNumbers, product?.sku, variant?.sku);
   const stockLabel = !variant ? "Out of stock" : !avail || !avail.in_stock ? "Out of stock" : avail.low_stock ? "Low stock" : "In stock";
 
+  useEffect(() => {
+    if (!product) return;
+
+    const origin = window.location.origin;
+    const canonicalUrl = origin + "/product/" + product.slug;
+    const supplierArticleNumber = supplierArticleNumberFor(supplierNumbers, product.sku, variant?.sku);
+    const inStockOffers = variants.filter((v) => availability?.some((a) => a.variant_id === v.id && a.in_stock));
+    const offers = variants.map((v) => {
+      const vAvail = availability?.find((a) => a.variant_id === v.id);
+      return {
+        "@type": "Offer",
+        priceCurrency: "SEK",
+        price: Math.round(v.regular_price),
+        availability: vAvail?.in_stock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        url: canonicalUrl,
+        sku: v.sku,
+      };
+    });
+
+    document.title = product.name + " | Loom & Co";
+    const upsertMeta = (name: string, content: string) => {
+      let el = document.head.querySelector('meta[name="' + name + '"]') as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement("meta");
+        el.name = name;
+        document.head.appendChild(el);
+      }
+      el.content = content;
+    };
+    upsertMeta(
+      "description",
+      [product.name, "Artikelnummer " + product.sku, supplierArticleNumber ? "Leverantörens artikelnummer " + supplierArticleNumber : "", product.short_description ?? product.description ?? ""]
+        .filter(Boolean)
+        .join(" — ")
+        .slice(0, 300),
+    );
+
+    let canonical = document.head.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.rel = "canonical";
+      document.head.appendChild(canonical);
+    }
+    canonical.href = canonicalUrl;
+
+    const schemaId = "loomco-product-schema";
+    document.getElementById(schemaId)?.remove();
+    const schema = document.createElement("script");
+    schema.id = schemaId;
+    schema.type = "application/ld+json";
+    schema.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: product.name,
+      description: product.description ?? product.short_description ?? undefined,
+      sku: product.sku,
+      mpn: supplierArticleNumber || product.sku,
+      url: canonicalUrl,
+      image: images.map((img) => productImageUrl(img.storage_path)),
+      brand: product.brand ? { "@type": "Brand", name: product.brand } : undefined,
+      additionalProperty: [
+        { "@type": "PropertyValue", name: "Artikelnummer", value: product.sku },
+        ...(supplierArticleNumber ? [{ "@type": "PropertyValue", name: "Leverantörens artikelnummer", value: supplierArticleNumber }] : []),
+      ],
+      offers: offers.length === 1 ? offers[0] : {
+        "@type": "AggregateOffer",
+        priceCurrency: "SEK",
+        lowPrice: Math.min(...variants.map((v) => Math.round(v.regular_price))),
+        highPrice: Math.max(...variants.map((v) => Math.round(v.regular_price))),
+        offerCount: variants.length,
+        availability: inStockOffers.length > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        url: canonicalUrl,
+      },
+    });
+    document.head.appendChild(schema);
+
+    return () => {
+      document.getElementById(schemaId)?.remove();
+    };
+  }, [product, supplierNumbers, variants, availability, images]);
+
+
   if (isLoading) {
     return <div className="mx-auto max-w-7xl px-5 py-20"><div className="grid gap-10 lg:grid-cols-2"><div className="aspect-[4/5] animate-pulse bg-soft" /><div className="space-y-4"><div className="h-8 w-3/4 animate-pulse bg-soft" /><div className="h-5 w-1/3 animate-pulse bg-soft" /><div className="h-28 animate-pulse bg-soft" /></div></div></div>;
   }
