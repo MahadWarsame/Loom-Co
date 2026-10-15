@@ -39,27 +39,32 @@ export function getSupplierArticleNumbers() {
   return supplierArticleNumbersPromise;
 }
 
+let normalizedMappingSource: Record<string, string> | null = null;
+let normalizedMapping: Record<string, string> = {};
+
 export function supplierArticleNumberFor(
   mapping: Record<string, string>,
   productSku: string | null | undefined,
   variantSku?: string | null,
 ) {
-  const variantKey = String(variantSku ?? "").trim();
-  const productKey = String(productSku ?? "").trim();
-  const exact = mapping[variantKey] ?? mapping[productKey];
-  if (exact) return exact;
-
-  const normalizedVariant = normalizeIdentifier(variantKey);
-  const normalizedProduct = normalizeIdentifier(productKey);
-
-  for (const [key, value] of Object.entries(mapping)) {
-    const normalizedKey = normalizeIdentifier(key);
-    if (normalizedKey && (normalizedKey === normalizedVariant || normalizedKey === normalizedProduct)) {
-      return value;
+  if (normalizedMappingSource !== mapping) {
+    normalizedMapping = {};
+    for (const [key, value] of Object.entries(mapping)) {
+      const normalizedKey = normalizeIdentifier(key);
+      if (normalizedKey) normalizedMapping[normalizedKey] = value;
     }
+    normalizedMappingSource = mapping;
   }
 
-  return null;
+  const variantKey = String(variantSku ?? "").trim();
+  const productKey = String(productSku ?? "").trim();
+  return (
+    mapping[variantKey] ??
+    mapping[productKey] ??
+    normalizedMapping[normalizeIdentifier(variantKey)] ??
+    normalizedMapping[normalizeIdentifier(productKey)] ??
+    null
+  );
 }
 
 function normalizeIdentifier(value: unknown) {
