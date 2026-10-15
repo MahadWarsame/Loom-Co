@@ -155,10 +155,27 @@ export function useProducts(filters: ShopFilters) {
       }
 
       const search = normalizeSearch(filters.q);
+      // Supplier numbers point to Artikelnummer/SKU values in the workbook.
+      // Reverse-index them for searches such as "6654A" and "5052A", rather
+      // than only searching the supplier number after a product SKU lookup.
+      const supplierArticleKeys = search
+        ? new Set(
+            Object.entries(supplierNumbers)
+              .filter(([, supplierNumber]) => normalizeSearch(supplierNumber).includes(search))
+              .map(([articleNumber]) => normalizeSearch(articleNumber)),
+          )
+        : new Set<string>();
+
       return products.filter((p) => {
         if (search) {
           const identifiers = buildSearchIdentifiers(p, supplierNumbers);
-          if (!identifiers.some((identifier) => identifier.includes(search))) return false;
+          const articleNumbers = [p.sku, ...p.variants.map((variant) => variant.sku)]
+            .map(normalizeSearch)
+            .filter(Boolean);
+          const matchesSupplierNumber = articleNumbers.some((articleNumber) =>
+            [...supplierArticleKeys].some((key) => key === articleNumber || articleNumber.includes(key) || key.includes(articleNumber)),
+          );
+          if (!identifiers.some((identifier) => identifier.includes(search)) && !matchesSupplierNumber) return false;
         }
         if (filters.categorySlug && !p.categorySlugs.some((slug) => descendantSlugs.has(slug))) return false;
         if (filters.color && p.attributes.Color !== filters.color) return false;
