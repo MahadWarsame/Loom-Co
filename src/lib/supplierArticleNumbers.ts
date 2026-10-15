@@ -10,6 +10,14 @@ const supplierArticleNumberCorrections: Record<string, string> = {
   "720080": "5052A",
   "720144": "5052A",
   "720208": "5052A",
+  "720030": "6654A",
+  "720031": "6654A",
+  "720094": "6654A",
+  "720095": "6654A",
+  "720158": "6654A",
+  "720159": "6654A",
+  "720222": "6654A",
+  "720223": "6654A",
 };
 
 function decodeBase64(value: string) {
