@@ -159,12 +159,12 @@ export function useProducts(filters: ShopFilters) {
       // Reverse-index them for searches such as "6654A" and "5052A", rather
       // than only searching the supplier number after a product SKU lookup.
       const supplierArticleKeys = search
-        ? new Set(
+        ? [...new Set(
             Object.entries(supplierNumbers)
               .filter(([, supplierNumber]) => normalizeSearch(supplierNumber).includes(search))
               .map(([articleNumber]) => normalizeSearch(articleNumber)),
-          )
-        : new Set<string>();
+          )]
+        : [];
 
       return products.filter((p) => {
         if (search) {
@@ -173,7 +173,7 @@ export function useProducts(filters: ShopFilters) {
             .map(normalizeSearch)
             .filter(Boolean);
           const matchesSupplierNumber = articleNumbers.some((articleNumber) =>
-            [...supplierArticleKeys].some((key) => key === articleNumber || articleNumber.includes(key) || key.includes(articleNumber)),
+            supplierArticleKeys.some((key) => key === articleNumber || articleNumber.includes(key) || key.includes(articleNumber)),
           );
           if (!identifiers.some((identifier) => identifier.includes(search)) && !matchesSupplierNumber) return false;
         }
