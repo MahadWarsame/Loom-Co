@@ -30,10 +30,19 @@ function decodeBase64(value: string) {
 export function getSupplierArticleNumbers() {
   if (!supplierArticleNumbersPromise) {
     supplierArticleNumbersPromise = (async () => {
-      const compressed = decodeBase64(supplierArticleNumbersGzipBase64);
-      const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("gzip"));
-      const mapping = (await new Response(stream).json()) as Record<string, string>;
-      return { ...mapping, ...supplierArticleNumberCorrections };
+      // Keep the verified overrides usable even if a browser/runtime cannot
+      // decompress the optional bundled index. Previously one decompression
+      // error rejected the whole promise, causing the search code to silently
+      // fall back to an empty supplier-number map.
+      try {
+        const compressed = decodeBase64(supplierArticleNumbersGzipBase64);
+        const stream = new Blob([compressed]).stream().pipeThrough(new DecompressionStream("gzip"));
+        const mapping = (await new Response(stream).json()) as Record<string, string>;
+        return { ...mapping, ...supplierArticleNumberCorrections };
+      } catch (error) {
+        console.error("Could not load the bundled supplier article-number index; using verified corrections:", error);
+        return { ...supplierArticleNumberCorrections };
+      }
     })();
   }
   return supplierArticleNumbersPromise;
