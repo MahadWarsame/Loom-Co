@@ -2,10 +2,14 @@ import { supplierArticleNumbersGzipBase64 } from "../data/supplierArticleNumbers
 
 let supplierArticleNumbersPromise: Promise<Record<string, string>> | null = null;
 
-// Corrections from the supplier-number Excel source where a row was not
-// captured correctly in the generated compressed index.
+// Verified corrections from the uploaded supplier Excel. The workbook maps
+// Artikelnummer -> Leverantörens artikelnummer; never infer these from names.
 const supplierArticleNumberCorrections: Record<string, string> = {
-  "720015": "5052A",
+  "720015": "5051A",
+  "720016": "5052A",
+  "720080": "5052A",
+  "720144": "5052A",
+  "720208": "5052A",
 };
 
 function decodeBase64(value: string) {
@@ -34,13 +38,9 @@ export function supplierArticleNumberFor(
 ) {
   const variantKey = String(variantSku ?? "").trim();
   const productKey = String(productSku ?? "").trim();
-
-  // First use the exact SKU keys (fast path).
   const exact = mapping[variantKey] ?? mapping[productKey];
   if (exact) return exact;
 
-  // Supplier files can contain formatting differences such as spaces,
-  // hyphens or underscores. Match those representations as well.
   const normalizedVariant = normalizeIdentifier(variantKey);
   const normalizedProduct = normalizeIdentifier(productKey);
 
